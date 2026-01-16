@@ -214,8 +214,8 @@ MIT License - Feel free to use this project as reference.
 ##  Author
 
 **Sofia Floriano**
-- GitHub: [@Sofia Floriano](https://github.com/Sofia-gith)
-- Devpost: [Sofia-gith]
+- GitHub: [@Sofia-gith](https://github.com/Sofia-gith)
+- Devpost: Sofia-gith
 
 ---
 
