@@ -26,8 +26,8 @@ Built for the **Gemini 3 Hackathon** using Google's Gemini API to dynamically ge
 ### Prerequisites
 
 - Node.js 18+ 
-- npm or yarn
-- Google AI Studio API Key ([Get it here](https://aistudio.google.com/app/apikey))
+- npm
+- Google AI Studio API Key ([Get it here](https://aistudio.google.com/app/api-keys))
 
 ### Setup
 
@@ -44,11 +44,7 @@ npm install
 
 3. **Configure environment variables**
 
-Create a `.env.local` file in the root directory:
-
-```env
-GEMINI_API_KEY=your_api_key_here
-```
+Create a `.env.local` file in the root directory. To see all required variables, refer to the [`.example.env`](./.example.env) file.
 
 4. **Run the development server**
 ```bash
@@ -88,7 +84,10 @@ anedolia/
 │       └── game.ts               # TypeScript types
 ├── public/
 │   └── models/                   # 3D models (.glb files)
+├── config/
+│   └──  env.ts                   # Environment variable handling
 ├── .env.local                    # Environment variables
+├── .env.example                  # Example env file
 ├── package.json
 └── README.md
 ```
@@ -131,18 +130,6 @@ The game uses Google's Gemini API to generate:
 - Flashback dialogue
 - Memory descriptions
 - Final message
-
-### Example Usage
-```typescript
-const response = await fetch('/api/gemini', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    prompt: 'Generate a melancholic memory about childhood...',
-    context: 'bedroom_photo'
-  })
-});
-```
 
 ---
 
