@@ -11,7 +11,7 @@ interface EnvConfig {
 }
 
 /**
- * Valida e retorna as variáveis de ambiente necessárias
+ * Valida e retorna as variáveis de ambiente necessárias 
  */
 function getEnvConfig(): EnvConfig {
   const googleGeminiApiKey = process.env.GOOGLE_API_KEY;
