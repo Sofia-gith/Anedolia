@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import Wall from "./Wall";
 import Floor from "./Floor";
+import Bed from "./Bed";
 
 export default function Bedroom() {
   return (
@@ -18,6 +19,8 @@ export default function Bedroom() {
             color="lightgray"
             receiveShadow
           />
+
+          <Bed />
 
           <Wall position={[0, 2, -5]} args={[10, 5, 1]} color="white" />
 
