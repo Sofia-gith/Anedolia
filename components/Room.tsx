@@ -1,7 +1,9 @@
 "use client";
 import { OrbitControls, Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { RigidBody, CuboidCollider, Physics } from "@react-three/rapier";
+import { Physics } from "@react-three/rapier";
+import Wall from "./Wall";
+import Floor from "./Floor";
 
 export default function Bedroom() {
   return (
@@ -10,31 +12,21 @@ export default function Bedroom() {
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         <group>
-          {/* CHÃO */}
-          <RigidBody type="fixed">
-            <mesh receiveShadow position={[0, -0.5, 0]}>
-              <boxGeometry args={[10, 1, 10]} />
-              <meshStandardMaterial color="lightgray" />
-            </mesh>
-          </RigidBody>
+          <Floor
+            position={[0, -0.5, 0]}
+            args={[10, 1, 10]}
+            color="lightgray"
+            receiveShadow
+          />
 
-          {/* PAREDE */}
-          <RigidBody type="fixed">
-            <mesh position={[0, 2, -5]}>
-              <boxGeometry args={[10, 5, 1]} />
-              <meshStandardMaterial color="white" />
-            </mesh>
-          </RigidBody>
+          <Wall position={[0, 2, -5]} args={[10, 5, 1]} color="white" />
+
+          <Wall position={[5, 2, 0]} args={[1, 5, 11]} color="white" />
         </group>
       </Physics>
 
-        <Sky sunPosition={[100, 20, 100]} />
-        <OrbitControls />
-
-
-
-
-
+      <Sky sunPosition={[100, 20, 100]} />
+      <OrbitControls />
     </Canvas>
   );
 }
