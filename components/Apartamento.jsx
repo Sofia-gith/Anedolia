@@ -453,6 +453,9 @@ export function Model(props) {
                 material={materials["4_Light_Material"]}
               />
             </group>
+
+              {/* MESA DA COZINHA */}
+
             <group
               position={[-276.492, 0, 107.533]}
               rotation={[-Math.PI / 2, 0, 0]}
