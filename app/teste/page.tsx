@@ -13,7 +13,7 @@
 
 // === IMPORTS ===
 // Modelo 3D do apartamento (gerado pelo gltfjsx)
-import { InteractionPrompt } from "@/components/interaction/InteractionPrompt";
+import { InteractionPrompt } from "@/components/ui/InteractionPrompt";
 // Componente do jogador com física e movimentação
 import { Player } from "@/components/Player";
 // UI de prompt de interação

@@ -14,7 +14,7 @@
  */
 "use client";
 
-import { useInteraction } from "./useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 export function InteractionPrompt() {
   // Obtém objeto mais próximo do state global
@@ -78,7 +78,7 @@ export function InteractionPrompt() {
         </div>
       </div>
 
-      {/* Indicador de distância (opcional - pode remover se não quiser) */}
+      {/* Indicador de distância */}
       <div
         style={{
           textAlign: "center",
