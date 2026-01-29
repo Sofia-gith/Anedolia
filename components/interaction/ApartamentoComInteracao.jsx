@@ -1,16 +1,16 @@
 /*
  * ApartamentoComInteracao - Wrapper para adicionar interatividade ao apartamento
- * 
+ *
  * Este componente:
  * 1. Renderiza o modelo original do Apartamento completo
  * 2. Adiciona objetos interativos como camadas separadas em posições específicas
- * 
+ *
  * Vantagem: Não modifica o arquivo Apartamento.jsx original
  */
 "use client";
 
 import { useState } from "react";
-import { Model as ApartamentoOriginal } from "./Apartamento";
+import { Model as ApartamentoOriginal } from "../Apartamento";
 import { InteractableObject } from "./InteractableObject";
 
 export function ApartamentoComInteracao(props) {
@@ -21,9 +21,9 @@ export function ApartamentoComInteracao(props) {
   const handleCoffeeMachineInteract = () => {
     setCoffeeMachineActive(!coffeeMachineActive);
     console.log(
-      coffeeMachineActive ? "☕ Cafeteira desligada!" : "☕ Fazendo café..."
+      coffeeMachineActive ? "☕ Cafeteira desligada!" : "☕ Fazendo café...",
     );
-    
+
     // Aqui você pode adicionar:
     // - Som de cafeteira
     // - Partículas de vapor
@@ -53,7 +53,7 @@ export function ApartamentoComInteracao(props) {
         <mesh visible={false}>
           <sphereGeometry args={[0.3]} />
         </mesh>
-        
+
         {/* 
           Opcional: Adicionar uma luz que acende quando ativa
           para dar feedback visual

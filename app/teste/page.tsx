@@ -13,15 +13,14 @@
 
 // === IMPORTS ===
 // Modelo 3D do apartamento (gerado pelo gltfjsx)
-import { InteractionPrompt } from "@/components/InteractionPrompt";
+import { InteractionPrompt } from "@/components/interaction/InteractionPrompt";
 // Componente do jogador com física e movimentação
 import { Player } from "@/components/Player";
 // UI de prompt de interação
 
-
-import { ApartamentoComInteracao as Apartamento } from "@/components/ApartamentoComInteracao";
+import { ApartamentoComInteracao as Apartamento } from "@/components/interaction/ApartamentoComInteracao";
 // Efeitos visuais de anedonia (dessaturação, vinheta, etc)
-// import { AnedoliaEffects } from "@/components/AnedoliaEffects";
+// import { AnedoliaEffects } from "@/components/effects/AnedoliaEffects";
 // Helpers do drei: ambiente HDR, controles de teclado e mouse
 import {
   Environment,
@@ -49,7 +48,7 @@ const map = [
   { name: "left", keys: ["ArrowLeft", "a", "A"] },
   { name: "right", keys: ["ArrowRight", "d", "D"] },
   { name: "jump", keys: ["Space"] },
-  { name: "interact", keys: ["e", "E"] }, 
+  { name: "interact", keys: ["e", "E"] },
 ];
 
 export default function Teste() {

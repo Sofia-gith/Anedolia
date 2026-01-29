@@ -1,4 +1,4 @@
-import Bedroom from "@/components/Room";
+import Bedroom from "@/components/firstRoom/Room";
 
 export default function Home() {
   return (

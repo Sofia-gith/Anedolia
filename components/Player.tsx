@@ -21,7 +21,7 @@ import {
 } from "@react-three/rapier";
 import { useRef } from "react";
 import * as THREE from "three";
-import { useInteraction } from "./useInteraction";
+import { useInteraction } from "./interaction/useInteraction";
 
 export function Player() {
   // Referência ao corpo rígido do Rapier (para aplicar física)
