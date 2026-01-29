@@ -91,7 +91,7 @@ export function Player() {
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[0, 2, 0]} // AJUSTE AQUI para mudar spawn inicial
+      position={[0, 1, 0]} // AJUSTE AQUI para mudar spawn inicial
     >
       {/**
        * CapsuleCollider: Forma de colisão do jogador

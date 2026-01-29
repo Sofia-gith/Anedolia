@@ -456,7 +456,7 @@ export function Model(props) {
 
               {/* MESA DA COZINHA */}
 
-            <group
+            {/* <group
               position={[-276.492, 0, 107.533]}
               rotation={[-Math.PI / 2, 0, 0]}
             >
@@ -489,7 +489,7 @@ export function Model(props) {
                   material={materials.Material_129}
                 />
               </group>
-            </group>
+            </group> */}
             <group
               position={[-234.992, 91.5, -27.095]}
               rotation={[-Math.PI / 2, 0, 0]}
@@ -546,7 +546,7 @@ export function Model(props) {
                 material={materials["4_Ceramic"]}
               />
             </group>
-            <group
+            {/* <group
               position={[-116.062, 72, -139.543]}
               rotation={[Math.PI, Math.PI / 4, -Math.PI]}
               scale={[0.027, 0.05, 0.027]}
@@ -573,7 +573,7 @@ export function Model(props) {
                   material={materials["7_Dinner"]}
                 />
               </group>
-            </group>
+            </group> */}
             <group
               position={[90.163, 168.75, -472.914]}
               rotation={[-Math.PI / 2, 0, Math.PI / 2]}
@@ -618,7 +618,7 @@ export function Model(props) {
                 position={[0, 0.173, 0]}
               />
             </group>
-            <group
+            {/* <group
               position={[-44.992, 72, -139.543]}
               rotation={[Math.PI, -Math.PI / 4, Math.PI]}
               scale={[0.027, 0.05, 0.027]}
@@ -673,8 +673,8 @@ export function Model(props) {
                   material={materials["7_Dinner"]}
                 />
               </group>
-            </group>
-            <group
+            </group> */}
+            {/* <group
               position={[-116.062, 72, -210.613]}
               rotation={[0, Math.PI / 4, 0]}
               scale={[0.027, 0.05, 0.027]}
@@ -701,7 +701,7 @@ export function Model(props) {
                   material={materials["7_Dinner"]}
                 />
               </group>
-            </group>
+            </group> */}
             <group
               position={[93.839, 168.75, -539.957]}
               rotation={[0, 1.341, 0]}
