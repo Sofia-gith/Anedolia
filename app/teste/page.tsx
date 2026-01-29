@@ -20,7 +20,7 @@ import { Player } from "@/components/Player";
 
 import { ApartamentoComInteracao as Apartamento } from "@/components/interaction/ApartamentoComInteracao";
 // Efeitos visuais de anedonia (dessaturação, vinheta, etc)
-// import { AnedoliaEffects } from "@/components/effects/AnedoliaEffects";
+ import { AnedoliaEffects } from "@/components/effects/AnedoliaEffects";
 // Helpers do drei: ambiente HDR, controles de teclado e mouse
 import {
   Environment,
@@ -70,7 +70,7 @@ export default function Teste() {
               Physics: Motor de física Rapier
               Tudo dentro dele terá simulação de física (gravidade, colisões)
             */}
-            <Physics debug>
+            <Physics>
               {/* === ILUMINAÇÃO === */}
               {/* Luz ambiente: ilumina toda a cena uniformemente */}
               <ambientLight intensity={1.5} />
@@ -111,7 +111,7 @@ export default function Teste() {
               - colorProgress: 0 = cinza total, 1 = cores restauradas
               - Aumentar esse valor conforme o jogador interage com objetos
             */}
-            {/* <AnedoliaEffects colorProgress={0} /> */}
+           <AnedoliaEffects colorProgress={0} /> 
           </Suspense>
         </Canvas>
 

@@ -1,64 +1,56 @@
 /*
- * ApartamentoComInteracao - Wrapper para adicionar interatividade ao apartamento
- *
- * Este componente:
- * 1. Renderiza o modelo original do Apartamento completo
- * 2. Adiciona objetos interativos como camadas separadas em posições específicas
- *
- * Vantagem: Não modifica o arquivo Apartamento.jsx original
+ * ApartamentoComInteracao - Versão Simples Completa
+ * Com CAFETEIRA e PLANTA interativas
  */
 "use client";
 
 import { useState } from "react";
-import { Model as ApartamentoOriginal } from "../Apartamento";
 import { InteractableObject } from "./InteractableObject";
+import { Model as Apartamento } from "../Apartamento";
 
 export function ApartamentoComInteracao(props) {
-  // Estado para controlar se a cafeteira foi ativada
-  const [coffeeMachineActive, setCoffeeMachineActive] = useState(false);
+  // ===== ESTADOS =====
+  
+  // Cafeteira: ligada ou desligada?
+  const [cafeAtivo, setCafeAtivo] = useState(false);
+  
+  // Planta: foi tocada?
+  const [plantaTocada, setPlantaTocada] = useState(false);
 
-  // Função executada quando jogador interage com a cafeteira
-  const handleCoffeeMachineInteract = () => {
-    setCoffeeMachineActive(!coffeeMachineActive);
-    console.log(
-      coffeeMachineActive ? "☕ Cafeteira desligada!" : "☕ Fazendo café...",
-    );
+  // ===== FUNÇÕES =====
 
-    // Aqui você pode adicionar:
-    // - Som de cafeteira
-    // - Partículas de vapor
-    // - Restaurar cores (AnedoliaEffects)
+  // Quando apertar E na cafeteira
+  const aoTocarCafe = () => {
+    setCafeAtivo(!cafeAtivo);
+    console.log(cafeAtivo ? "☕ Cafeteira desligada!" : "☕ Fazendo café...");
+  };
+
+  // Quando apertar E na planta
+  const aoTocarPlanta = () => {
+    setPlantaTocada(true);
+    console.log("🌿 Você tocou na planta!");
   };
 
   return (
     <group>
-      {/* Modelo original do apartamento - sem modificações */}
-      <ApartamentoOriginal {...props} />
+      {/* O apartamento original */}
+      <Apartamento {...props} />
 
-      {/* 
-        Objetos interativos posicionados sobre o modelo original
-        A posição precisa ser ajustada testando no jogo
-      */}
+      {/* ===== CAFETEIRA INTERATIVA ===== */}
       <InteractableObject
-        id="coffeeMachine"
+        id="cafeteira"
         name="Cafeteira"
-        position={[-1.98, 1.01, 0.999]} // Posição aproximada da cafeteira na cozinha
+        position={[-1.98, 1.01, 0.999]}
         interactionDistance={2.5}
-        onInteract={handleCoffeeMachineInteract}
+        onInteract={aoTocarCafe}
       >
-        {/* 
-          Esfera invisível apenas para detectar interação
-          O mesh visual já está no modelo original
-        */}
+        {/* Área invisível para detectar */}
         <mesh visible={false}>
           <sphereGeometry args={[0.3]} />
         </mesh>
-
-        {/* 
-          Opcional: Adicionar uma luz que acende quando ativa
-          para dar feedback visual
-        */}
-        {coffeeMachineActive && (
+        
+        {/* Luz laranja quando liga */}
+        {cafeAtivo && (
           <pointLight
             position={[0, 0, 0]}
             intensity={2}
@@ -68,21 +60,29 @@ export function ApartamentoComInteracao(props) {
         )}
       </InteractableObject>
 
-      {/* 
-        ADICIONE MAIS OBJETOS INTERATIVOS AQUI
+      {/* ===== PLANTA INTERATIVA ===== */}
+      <InteractableObject
+        id="planta"
+        name="Planta"
+        position={[-2.42, 0.91, -2.10]}
+        interactionDistance={2.0}
+        onInteract={aoTocarPlanta}
+      >
+        {/* Área invisível para detectar */}
+        <mesh visible={false}>
+          <sphereGeometry args={[0.4]} />
+        </mesh>
         
-        Exemplo - TV:
-        <InteractableObject
-          id="tv"
-          name="Televisão"
-          position={[0.47, 0.51, -5.73]}
-          onInteract={() => console.log("TV ligada!")}
-        >
-          <mesh visible={false}>
-            <boxGeometry args={[0.5, 0.3, 0.1]} />
-          </mesh>
-        </InteractableObject>
-      */}
+        {/* Luz verde quando toca */}
+        {plantaTocada && (
+          <pointLight
+            position={[0, 0.5, 0]}
+            intensity={1.5}
+            distance={2}
+            color="#00ff88"
+          />
+        )}
+      </InteractableObject>
     </group>
   );
 }

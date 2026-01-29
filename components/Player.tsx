@@ -5,7 +5,7 @@
  * - Corpo físico do jogador (cápsula com colisão)
  * - Movimentação via teclado (WASD)
  * - Sincronização da câmera com a posição do jogador
- * - NOVO: Interação com objetos pressionando E
+ * - Interação com objetos pressionando E
  *
  * Dependências:
  * - @react-three/drei: useKeyboardControls para capturar teclas
@@ -28,7 +28,6 @@ export function Player() {
   const rb = useRef<RapierRigidBody>(null);
 
   // Hook para acessar o estado das teclas pressionadas
-  // O primeiro elemento [subscribeKeys] é ignorado, usamos apenas getKeys
   const [, getKeys] = useKeyboardControls();
 
   // Hook de interação para acessar objetos próximos
@@ -73,15 +72,12 @@ export function Player() {
 
     // === APLICAÇÃO DA FÍSICA ===
     // Preserva a velocidade vertical (Y) para manter a gravidade funcionando
-    // Sem isso, o jogador flutuaria ao invés de cair
     const currentVel = rb.current.linvel();
 
     // Define a velocidade linear do corpo físico
-    // - x, z: controlados pelo jogador
-    // - y: controlado pela gravidade
     rb.current.setLinvel(
       { x: velocity.x, y: currentVel.y, z: velocity.z },
-      true, // wakeUp: garante que o corpo não "durma" (otimização do Rapier)
+      true, // wakeUp: garante que o corpo não "durma"
     );
 
     // === SINCRONIZAÇÃO DA CÂMERA ===
@@ -89,37 +85,32 @@ export function Player() {
     const translation = rb.current.translation();
     state.camera.position.set(
       translation.x, // Mesma posição X do jogador
-      translation.y + 1.5, // 1.5 unidades acima (altura dos olhos)
+      translation.y + 0.8, // 0.8 unidades acima (altura dos olhos - REDUZIDO)
       translation.z, // Mesma posição Z do jogador
     );
-    // Nota: A rotação da câmera é controlada pelo PointerLockControls
   });
 
   return (
-    /**
-     * RigidBody: Corpo físico do jogador
-     *
-     * - ref: Referência para manipular via código
-     * - colliders={false}: Desativa collider automático (usamos CapsuleCollider)
-     * - enabledRotations: [X, Y, Z] - Trava rotações para evitar "tombar"
-     * - position: Posição inicial [x, y, z] - Ajuste Y para spawnar dentro da casa
-     */
+   
+    
     <RigidBody
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[0, 2, 0]} // AJUSTE AQUI para mudar spawn inicial
+      position={[0, 1, 0]} // Spawn um pouco mais baixo também
     >
       {/**
        * CapsuleCollider: Forma de colisão do jogador
        *
        * args={[halfHeight, radius]}
-       * - halfHeight (0.75): Metade da altura do cilindro central
-       * - radius (0.5): Raio das esferas nas pontas
+       * - halfHeight (0.5): Metade da altura do cilindro central = 1.0 unidade
+       * - radius (0.3): Raio das esferas nas pontas = 0.6 unidade total
        *
-       * Altura total = halfHeight * 2 + radius * 2 = 2.5 unidades
+       * Altura total = 0.5 * 2 + 0.3 * 2 = 1.0 + 0.6 = 1.6 unidades
+       * 
+       * Com câmera +0.8, visão fica a 1.6 + 0.8 = ~2.4 unidades do chão
        */}
-      <CapsuleCollider args={[0.75, 0.5]} />
+      <CapsuleCollider args={[0.5, 0.3]} />
     </RigidBody>
   );
 }
