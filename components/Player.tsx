@@ -5,6 +5,7 @@
  * - Corpo físico do jogador (cápsula com colisão)
  * - Movimentação via teclado (WASD)
  * - Sincronização da câmera com a posição do jogador
+ * - NOVO: Interação com objetos pressionando E
  *
  * Dependências:
  * - @react-three/drei: useKeyboardControls para capturar teclas
@@ -20,6 +21,7 @@ import {
 } from "@react-three/rapier";
 import { useRef } from "react";
 import * as THREE from "three";
+import { useInteraction } from "./useInteraction";
 
 export function Player() {
   // Referência ao corpo rígido do Rapier (para aplicar física)
@@ -29,8 +31,15 @@ export function Player() {
   // O primeiro elemento [subscribeKeys] é ignorado, usamos apenas getKeys
   const [, getKeys] = useKeyboardControls();
 
+  // Hook de interação para acessar objetos próximos
+  const interact = useInteraction((state) => state.interact);
+
   // Velocidade de movimento do jogador (unidades por segundo)
   const speed = 5;
+
+  // Referência para debounce da tecla E (evita múltiplas interações)
+  const lastInteractTime = useRef(0);
+  const interactCooldown = 500; // 500ms entre interações
 
   /**
    * useFrame: Executa a cada frame de renderização (~60fps)
@@ -43,7 +52,15 @@ export function Player() {
 
     // === CAPTURA DE INPUT ===
     // Obtém o estado atual das teclas (true = pressionada)
-    const { forward, backward, left, right } = getKeys();
+    const { forward, backward, left, right, interact: interactKey } = getKeys();
+
+    // === SISTEMA DE INTERAÇÃO ===
+    // Verifica se tecla E foi pressionada e se passou o cooldown
+    const now = Date.now();
+    if (interactKey && now - lastInteractTime.current > interactCooldown) {
+      interact(); // Executa interação com objeto mais próximo
+      lastInteractTime.current = now;
+    }
 
     // === CÁLCULO DE MOVIMENTO ===
     // Cria vetor de velocidade baseado nas teclas pressionadas
@@ -91,7 +108,7 @@ export function Player() {
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[0, 1, 0]} // AJUSTE AQUI para mudar spawn inicial
+      position={[0, 2, 0]} // AJUSTE AQUI para mudar spawn inicial
     >
       {/**
        * CapsuleCollider: Forma de colisão do jogador

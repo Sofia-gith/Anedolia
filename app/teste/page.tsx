@@ -5,21 +5,26 @@
  * - Ambiente 3D interativo usando React Three Fiber
  * - Sistema de física com Rapier para colisões e gravidade
  * - Controles de primeira pessoa (WASD + Mouse)
- * - Modelo 3D do apartamento
+ * - NOVO: Sistema de interação com objetos (tecla E)
+ * - NOVO: UI de prompt de interação
+ * - Modelo 3D do apartamento com objetos interativos
  */
 "use client";
 
 // === IMPORTS ===
 // Modelo 3D do apartamento (gerado pelo gltfjsx)
-import { Model as Apartamento } from "@/components/Apartamento";
+import { InteractionPrompt } from "@/components/InteractionPrompt";
 // Componente do jogador com física e movimentação
 import { Player } from "@/components/Player";
+// UI de prompt de interação
+
+
+import { ApartamentoComInteracao as Apartamento } from "@/components/ApartamentoComInteracao";
 // Efeitos visuais de anedonia (dessaturação, vinheta, etc)
 // import { AnedoliaEffects } from "@/components/AnedoliaEffects";
 // Helpers do drei: ambiente HDR, controles de teclado e mouse
 import {
   Environment,
-  OrbitControls,
   KeyboardControls,
   PointerLockControls,
 } from "@react-three/drei";
@@ -34,6 +39,7 @@ import { Suspense } from "react";
  * - forward/backward: movimento frente/trás
  * - left/right: movimento lateral
  * - jump: pulo (não implementado ainda)
+ * - interact: tecla E para interagir com objetos
  *
  * Cada ação aceita múltiplas teclas (setas e WASD)
  */
@@ -43,6 +49,7 @@ const map = [
   { name: "left", keys: ["ArrowLeft", "a", "A"] },
   { name: "right", keys: ["ArrowRight", "d", "D"] },
   { name: "jump", keys: ["Space"] },
+  { name: "interact", keys: ["e", "E"] }, 
 ];
 
 export default function Teste() {
@@ -96,7 +103,7 @@ export default function Teste() {
               */}
               <PointerLockControls />
 
-              {/* Modelo 3D do apartamento */}
+              {/* Modelo 3D do apartamento com objetos interativos */}
               <Apartamento />
             </Physics>
 
@@ -108,6 +115,12 @@ export default function Teste() {
             {/* <AnedoliaEffects colorProgress={0} /> */}
           </Suspense>
         </Canvas>
+
+        {/* 
+          InteractionPrompt: UI overlay que mostra quando pode interagir
+          Renderiza fora do Canvas para ficar sobreposto à cena 3D
+        */}
+        <InteractionPrompt />
       </div>
     </KeyboardControls>
   );
