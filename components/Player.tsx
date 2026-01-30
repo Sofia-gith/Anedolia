@@ -3,7 +3,7 @@
  *
  * Este componente gerencia:
  * - Corpo físico do jogador (cápsula com colisão)
- * - Movimentação via teclado (WASD)
+ * - Movimentação via teclado (WASD) ALINHADA COM A DIREÇÃO DO OLHAR
  * - Sincronização da câmera com a posição do jogador
  * - Interação com objetos pressionando E
  * - Sistema de zoom ao interagir
@@ -51,7 +51,14 @@ export function Player() {
     // Verifica se tecla E foi pressionada e se passou o cooldown
     const now = Date.now();
     if (interactKey && now - lastInteractTime.current > interactCooldown) {
-      interact(); // Executa interação com objeto mais próximo (ativa zoom)
+      // Passa a posição atual do jogador para o sistema de interação
+      const translation = rb.current.translation();
+      const playerPos: [number, number, number] = [
+        translation.x,
+        translation.y + 0.8, // Altura da câmera
+        translation.z
+      ];
+      interact(playerPos); // Executa interação com objeto mais próximo (ativa zoom)
       lastInteractTime.current = now;
     }
 
@@ -62,12 +69,40 @@ export function Player() {
       return;
     }
 
-    // === CÁLCULO DE MOVIMENTO ===
+    // === CÁLCULO DE MOVIMENTO BASEADO NA DIREÇÃO DO OLHAR ===
+    // Cria vetor de movimento inicial
     const velocity = new THREE.Vector3(0, 0, 0);
-    if (forward) velocity.z -= speed;
-    if (backward) velocity.z += speed;
-    if (left) velocity.x -= speed;
-    if (right) velocity.x += speed;
+    
+    // Captura a direção para onde a câmera está olhando
+    const cameraDirection = new THREE.Vector3();
+    state.camera.getWorldDirection(cameraDirection);
+    
+    // Remove o componente vertical (Y) para movimento apenas no plano horizontal
+    cameraDirection.y = 0;
+    cameraDirection.normalize(); // Normaliza para manter velocidade consistente
+
+    // Calcula o vetor "para a direita" (perpendicular à frente)
+    const rightDirection = new THREE.Vector3();
+    rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+    rightDirection.normalize();
+
+    // Aplica movimento baseado nas teclas pressionadas
+    // W/↑: move para onde você está olhando
+    if (forward) {
+      velocity.add(cameraDirection.clone().multiplyScalar(speed));
+    }
+    // S/↓: move para trás (oposto da direção do olhar)
+    if (backward) {
+      velocity.add(cameraDirection.clone().multiplyScalar(-speed));
+    }
+    // A/←: move para a esquerda (perpendicular ao olhar)
+    if (left) {
+      velocity.add(rightDirection.clone().multiplyScalar(-speed));
+    }
+    // D/→: move para a direita (perpendicular ao olhar)
+    if (right) {
+      velocity.add(rightDirection.clone().multiplyScalar(speed));
+    }
 
     // === APLICAÇÃO DA FÍSICA ===
     const currentVel = rb.current.linvel();

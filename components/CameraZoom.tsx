@@ -1,9 +1,7 @@
 /**
  * CameraZoom - Componente para Animação de Zoom da Câmera
  * 
- * Gerencia o zoom suave da câmera ao interagir com objetos.
- * Funciona salvando a posição original do jogador e interpolando
- * suavemente entre a posição atual e a posição do zoom.
+ * Gerencia o zoom suave da câmera ao interagir com objetos
  * 
  * Uso: Adicione dentro do Canvas no page.tsx
  */
@@ -11,16 +9,20 @@
 
 import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Vector3 } from "three";
+import { Vector3, Quaternion } from "three";
 import { useInteraction } from "./interaction/useInteraction";
 
 export function CameraZoom() {
   const { camera } = useThree();
   
-  // Posição original da câmera (do jogador)
+  // Posição e rotação originais da câmera
   const originalPosition = useRef(new Vector3());
+  const originalRotation = useRef(new Quaternion());
+  
+  // Posição e rotação alvo
   const targetPosition = useRef(new Vector3());
-  const targetLookAt = useRef(new Vector3());
+  const targetRotation = useRef(new Quaternion());
+  const lookAtTarget = useRef(new Vector3());
   
   // Controle de animação
   const isAnimating = useRef(false);
@@ -33,20 +35,35 @@ export function CameraZoom() {
   // Detecta quando inicia ou termina o zoom
   useEffect(() => {
     if (zoomState.isZooming && !isAnimating.current) {
-      // Inicia zoom
+      // === INICIA ZOOM ===
+      // Salva posição e rotação atuais
       originalPosition.current.copy(camera.position);
+      originalRotation.current.copy(camera.quaternion);
+      
+      // Define alvo do zoom
       if (zoomState.targetPosition) {
         targetPosition.current.set(...zoomState.targetPosition);
       }
       if (zoomState.targetLookAt) {
-        targetLookAt.current.set(...zoomState.targetLookAt);
+        lookAtTarget.current.set(...zoomState.targetLookAt);
+        
+        // Calcula a rotação necessária para olhar para o objeto
+        const tempCam = camera.clone();
+        tempCam.position.copy(targetPosition.current);
+        tempCam.lookAt(lookAtTarget.current);
+        targetRotation.current.copy(tempCam.quaternion);
       }
+      
       isAnimating.current = true;
       isZoomingIn.current = true;
       animationProgress.current = 0;
+      
     } else if (!zoomState.isZooming && isAnimating.current && isZoomingIn.current) {
-      // Inicia zoom out (volta ao normal)
+      // === INICIA ZOOM OUT ===
+      // O alvo agora é a posição original
       targetPosition.current.copy(originalPosition.current);
+      targetRotation.current.copy(originalRotation.current);
+      
       isZoomingIn.current = false;
       animationProgress.current = 0;
     }
@@ -56,14 +73,15 @@ export function CameraZoom() {
   useFrame((state, delta) => {
     if (!isAnimating.current) return;
 
-    // Velocidade da animação (mais rápido = maior valor)
-    const speed = isZoomingIn.current ? 3 : 4; // Zoom out mais rápido
+    // Velocidade da animação
+    const speed = isZoomingIn.current ? 3.5 : 4.5; // Zoom out mais rápido
     animationProgress.current += delta * speed;
 
     if (animationProgress.current >= 1) {
       // Animação completa
       animationProgress.current = 1;
       if (!isZoomingIn.current) {
+        // Finaliza zoom out
         isAnimating.current = false;
       }
     }
@@ -77,16 +95,24 @@ export function CameraZoom() {
 
     const progress = easeInOutCubic(animationProgress.current);
 
-    // Interpola posição da câmera
+    // === INTERPOLA POSIÇÃO ===
     const startPos = isZoomingIn.current 
       ? originalPosition.current 
       : camera.position.clone();
     
     camera.position.lerpVectors(startPos, targetPosition.current, progress);
 
-    // Faz a câmera olhar para o objeto (apenas no zoom in)
-    if (isZoomingIn.current && zoomState.targetLookAt) {
-      camera.lookAt(targetLookAt.current);
+    // === INTERPOLA ROTAÇÃO (para centralizar objeto) ===
+    const startRot = isZoomingIn.current
+      ? originalRotation.current
+      : camera.quaternion.clone();
+    
+    camera.quaternion.slerpQuaternions(startRot, targetRotation.current, progress);
+    
+    // Durante o zoom in, força a câmera a olhar para o objeto
+    // Isso garante que o objeto fique perfeitamente centralizado
+    if (isZoomingIn.current && progress > 0.1) {
+      camera.lookAt(lookAtTarget.current);
     }
   });
 

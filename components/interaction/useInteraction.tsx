@@ -1,11 +1,11 @@
 /**
- * useInteraction - Hook para Sistema de Interação com Objetos + ZOOM
+ * useInteraction - Hook para Sistema de Interação com Objetos + ZOOM FRONTAL
  *
  * Gerencia o estado global de interações no jogo:
  * - Qual objeto está próximo do jogador
  * - Se o jogador pode interagir
  * - Callbacks de interação
- * - Sistema de zoom na câmera ao interagir (NOVO!)
+ * - NOVO: Calcula posição da câmera de FRENTE para o objeto
  *
  * Uso:
  * - Componentes InteractableObject registram-se aqui
@@ -23,18 +23,19 @@ interface InteractableObject {
   id: string; // Identificador único do objeto
   name: string; // Nome para exibir na UI ("Cafeteira", "Porta", etc)
   distance: number; // Distância atual do jogador
-  position: [number, number, number]; // Posição 3D do objeto (NOVO!)
+  position: [number, number, number]; // Posição 3D do objeto
   onInteract: () => void; // Função a executar quando interagir
 }
 
 /**
- * Estado de zoom da câmera (NOVO!)
+ * Estado de zoom da câmera
  */
 interface ZoomState {
   isZooming: boolean; // Se está fazendo zoom
   targetPosition: [number, number, number] | null; // Posição alvo do zoom
-  targetLookAt: [number, number, number] | null; // Para onde olhar
+  targetLookAt: [number, number, number] | null; // Para onde olhar (centro do objeto)
   duration: number; // Duração da animação em ms
+  playerPosition: [number, number, number] | null; // Posição do jogador ao iniciar zoom
 }
 
 /**
@@ -44,23 +45,24 @@ interface InteractionState {
   // Objeto mais próximo que pode ser interagido
   nearestObject: InteractableObject | null;
 
-  // Estado do zoom (NOVO!)
+  // Estado do zoom
   zoomState: ZoomState;
 
   // Registra um objeto como disponível para interação
   setNearestObject: (obj: InteractableObject | null) => void;
 
   // Executa a interação com o objeto mais próximo
-  interact: () => void;
+  interact: (playerPosition: [number, number, number]) => void;
 
-  // Inicia o zoom para um objeto (NOVO!)
+  // Inicia o zoom para um objeto
   startZoom: (
     targetPosition: [number, number, number],
     targetLookAt: [number, number, number],
+    playerPosition: [number, number, number],
     duration?: number
   ) => void;
 
-  // Finaliza o zoom e volta à posição original (NOVO!)
+  // Finaliza o zoom e volta à posição original
   endZoom: () => void;
 }
 
@@ -71,59 +73,86 @@ interface InteractionState {
 export const useInteraction = create<InteractionState>((set, get) => ({
   nearestObject: null,
 
-  // Estado inicial do zoom (NOVO!)
   zoomState: {
     isZooming: false,
     targetPosition: null,
     targetLookAt: null,
+    playerPosition: null,
     duration: 1000,
   },
 
   setNearestObject: (obj) => set({ nearestObject: obj }),
 
-  interact: () => {
+  interact: (playerPosition) => {
     const { nearestObject } = get();
     if (nearestObject) {
       // Executa callback de interação
       nearestObject.onInteract();
 
-      // Inicia zoom para o objeto (NOVO!)
+      // === CÁLCULO DA POSIÇÃO FRONTAL AO OBJETO ===
       const objectPos = nearestObject.position;
-      // Calcula posição da câmera (um pouco atrás e acima do objeto)
-      const cameraOffset: [number, number, number] = [
-        objectPos[0],
-        objectPos[1] + 0.3,
-        objectPos[2] + 1.5,
+      
+      // Calcula o vetor da posição do jogador para o objeto
+      const directionToObject = [
+        objectPos[0] - playerPosition[0],
+        objectPos[1] - playerPosition[1],
+        objectPos[2] - playerPosition[2],
       ];
 
-      get().startZoom(cameraOffset, objectPos, 800);
+      // Normaliza o vetor (comprimento = 1)
+      const length = Math.sqrt(
+        directionToObject[0] ** 2 +
+        directionToObject[1] ** 2 +
+        directionToObject[2] ** 2
+      );
 
-      // Volta ao normal após 2 segundos
+      const normalizedDirection = [
+        directionToObject[0] / length,
+        directionToObject[1] / length,
+        directionToObject[2] / length,
+      ];
+
+      // Distância do zoom (o quão perto a câmera fica do objeto)
+      const zoomDistance = 1.2;
+
+      // Posição da câmera: na direção oposta de onde o jogador veio
+      // Isso garante que a câmera fique DE FRENTE para o objeto
+      const cameraOffset: [number, number, number] = [
+        objectPos[0] - normalizedDirection[0] * zoomDistance,  // Oposto X
+        objectPos[1] + 0.2,                                     // Altura ajustada
+        objectPos[2] - normalizedDirection[2] * zoomDistance,  // Oposto Z
+      ];
+
+      // O targetLookAt é exatamente a posição do objeto
+      // Isso faz a câmera olhar diretamente para o centro do objeto
+      get().startZoom(cameraOffset, objectPos, playerPosition, 800);
+
+      // Volta ao normal após 2.5 segundos
       setTimeout(() => {
         get().endZoom();
-      }, 2000);
+      }, 2500);
     }
   },
 
-  // Função para iniciar zoom (NOVO!)
-  startZoom: (targetPosition, targetLookAt, duration = 1000) => {
+  startZoom: (targetPosition, targetLookAt, playerPosition, duration = 1000) => {
     set({
       zoomState: {
         isZooming: true,
         targetPosition,
         targetLookAt,
+        playerPosition,
         duration,
       },
     });
   },
 
-  // Função para finalizar zoom (NOVO!)
   endZoom: () => {
     set({
       zoomState: {
         isZooming: false,
         targetPosition: null,
         targetLookAt: null,
+        playerPosition: null,
         duration: 1000,
       },
     });
