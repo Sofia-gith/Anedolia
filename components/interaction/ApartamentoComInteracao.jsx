@@ -1,6 +1,6 @@
 /*
- * ApartamentoComInteracao - Versão Simples Completa
- * Com CAFETEIRA e PLANTA interativas
+ * ApartamentoComInteracao - Versão Completa
+ * Com CAFETEIRA, PLANTA VERDE, LIVROS e ESPELHO
  */
 "use client";
 
@@ -16,6 +16,14 @@ export function ApartamentoComInteracao(props) {
   
   // Planta: foi tocada?
   const [plantaTocada, setPlantaTocada] = useState(false);
+  
+  // Livros: foram lidos?
+  const [livrosLidos, setLivrosLidos] = useState(false);
+  const [contadorLivros, setContadorLivros] = useState(0);
+  
+  // Espelho: foi olhado?
+  const [espelhoOlhado, setEspelhoOlhado] = useState(false);
+  const [contadorEspelho, setContadorEspelho] = useState(0);
 
   // ===== FUNÇÕES =====
 
@@ -25,10 +33,50 @@ export function ApartamentoComInteracao(props) {
     console.log(cafeAtivo ? "☕ Cafeteira desligada!" : "☕ Fazendo café...");
   };
 
-  // Quando apertar E na planta
+  // Quando apertar E na planta verde
   const aoTocarPlanta = () => {
     setPlantaTocada(true);
-    console.log("🌿 Você tocou na planta!");
+    console.log("🌿 Você tocou na planta verde!");
+  };
+
+  // Quando apertar E nos livros
+  const aoTocarLivros = () => {
+    setLivrosLidos(true);
+    const novoContador = contadorLivros + 1;
+    setContadorLivros(novoContador);
+    
+    const mensagens = [
+      "📚 Você pega um livro da estante...",
+      "📖 'Memórias de um Solitário' - parece interessante.",
+      "📚 Você folheia as páginas lentamente.",
+      "📖 As palavras trazem conforto...",
+      "📚 Você sente uma conexão com as histórias.",
+      "📖 Cada livro tem sua própria jornada.",
+    ];
+    
+    const indice = (novoContador - 1) % mensagens.length;
+    console.log(mensagens[indice]);
+  };
+
+  // Quando apertar E no espelho
+  const aoOlharEspelho = () => {
+    setEspelhoOlhado(true);
+    const novoContador = contadorEspelho + 1;
+    setContadorEspelho(novoContador);
+    
+    const mensagens = [
+      "🪞 Você olha para o espelho...",
+      "🪞 Seu reflexo olha de volta.",
+      "🪞 Você vê sinais de cansaço em seu rosto.",
+      "🪞 Quando foi a última vez que sorriu?",
+      "🪞 Os olhos refletem uma tristeza profunda.",
+      "🪞 Você se reconhece?",
+      "🪞 Há esperança por trás desses olhos.",
+      "🪞 Talvez amanhã seja diferente...",
+    ];
+    
+    const indice = (novoContador - 1) % mensagens.length;
+    console.log(mensagens[indice]);
   };
 
   return (
@@ -36,7 +84,7 @@ export function ApartamentoComInteracao(props) {
       {/* O apartamento original */}
       <Apartamento {...props} />
 
-      {/* ===== CAFETEIRA INTERATIVA ===== */}
+      {/* ===== CAFETEIRA(cozinha) ===== */}
       <InteractableObject
         id="cafeteira"
         name="Cafeteira"
@@ -44,12 +92,10 @@ export function ApartamentoComInteracao(props) {
         interactionDistance={2.5}
         onInteract={aoTocarCafe}
       >
-        {/* Área invisível para detectar */}
         <mesh visible={false}>
           <sphereGeometry args={[0.3]} />
         </mesh>
         
-        {/* Luz laranja quando liga */}
         {cafeAtivo && (
           <pointLight
             position={[0, 0, 0]}
@@ -60,26 +106,68 @@ export function ApartamentoComInteracao(props) {
         )}
       </InteractableObject>
 
-      {/* ===== PLANTA INTERATIVA ===== */}
+      {/* ===== PLANTA VERDE(ao lado da TV) ===== */}
       <InteractableObject
         id="planta"
         name="Planta"
-        position={[-2.42, 0.91, -2.10]}
+        position={[0.30, 0.83, -6.37]}
         interactionDistance={2.0}
         onInteract={aoTocarPlanta}
       >
-        {/* Área invisível para detectar */}
         <mesh visible={false}>
           <sphereGeometry args={[0.4]} />
         </mesh>
         
-        {/* Luz verde quando toca */}
         {plantaTocada && (
           <pointLight
             position={[0, 0.5, 0]}
             intensity={1.5}
             distance={2}
             color="#00ff88"
+          />
+        )}
+      </InteractableObject>
+
+      {/* ===== LIVROS INTERATIVOS (estante do quarto) ===== */}
+      <InteractableObject
+        id="livros"
+        name="Livros"
+        position={[0.90, 1.37, -5.96]}
+        interactionDistance={2.0}
+        onInteract={aoTocarLivros}
+      >
+        <mesh visible={false}>
+          <boxGeometry args={[0.5, 0.6, 0.3]} />
+        </mesh>
+        
+        {livrosLidos && (
+          <pointLight
+            position={[0, 0, 0]}
+            intensity={1.2}
+            distance={2.5}
+            color="#ffdd88"
+          />
+        )}
+      </InteractableObject>
+
+      {/* ===== ESPELHO INTERATIVO (banheiro) ===== */}
+      <InteractableObject
+        id="espelho"
+        name="Espelho"
+        position={[4.09, 1.00, -0.48]}
+        interactionDistance={2.0}
+        onInteract={aoOlharEspelho}
+      >
+        <mesh visible={false}>
+          <boxGeometry args={[0.6, 0.8, 0.1]} />
+        </mesh>
+        
+        {espelhoOlhado && (
+          <pointLight
+            position={[0, 0, 0.3]}
+            intensity={1.0}
+            distance={2}
+            color="#aaccff"
           />
         )}
       </InteractableObject>
