@@ -1,10 +1,11 @@
 /**
- * InteractableObject - Componente para Objetos Interativos
+ * InteractableObject - Componente para Objetos Interativos com ZOOM
  *
  * Envolve objetos 3D tornando-os interativos:
  * - Detecta quando o jogador está próximo (distância configurável)
  * - Registra-se no sistema de interação
  * - Executa callback quando jogador pressiona E
+ * - Aplica zoom automático na câmera ao interagir
  *
  * Props:
  * - id: identificador único
@@ -13,16 +14,6 @@
  * - interactionDistance: distância máxima para interagir (padrão: 2)
  * - onInteract: função executada ao interagir
  * - children: mesh/group do objeto 3D
- *
- * Exemplo de uso:
- * <InteractableObject
- *   id="coffeeMachine"
- *   name="Cafeteira"
- *   position={[-1.78, 0.91, 0.899]}
- *   onInteract={() => console.log("Fazendo café!")}
- * >
- *   <mesh>...</mesh>
- * </InteractableObject>
  */
 "use client";
 
@@ -64,11 +55,12 @@ export function InteractableObject({
 
     // Se está dentro da distância de interação
     if (distance <= interactionDistance) {
-      // Registra como objeto mais próximo
+      // Registra como objeto mais próximo (agora inclui posição)
       setNearestObject({
         id,
         name,
         distance,
+        position, // Passa a posição para o sistema de zoom
         onInteract,
       });
     } else {
