@@ -1,15 +1,12 @@
 /**
- * Componente Player - Controle do Jogador em Primeira Pessoa
+ * Componente Player - Controle do Jogador em Primeira Pessoa com ZOOM
  *
  * Este componente gerencia:
  * - Corpo físico do jogador (cápsula com colisão)
- * - Movimentação via teclado (WASD)
+ * - Movimentação via teclado (WASD) ALINHADA COM A DIREÇÃO DO OLHAR
  * - Sincronização da câmera com a posição do jogador
- *
- * Dependências:
- * - @react-three/drei: useKeyboardControls para capturar teclas
- * - @react-three/fiber: useFrame para atualizar a cada frame
- * - @react-three/rapier: RigidBody e CapsuleCollider para física
+ * - Interação com objetos pressionando E
+ * - Sistema de zoom ao interagir
  */
 import { useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
@@ -20,89 +17,121 @@ import {
 } from "@react-three/rapier";
 import { useRef } from "react";
 import * as THREE from "three";
+import { useInteraction } from "./interaction/useInteraction";
 
 export function Player() {
   // Referência ao corpo rígido do Rapier (para aplicar física)
   const rb = useRef<RapierRigidBody>(null);
 
   // Hook para acessar o estado das teclas pressionadas
-  // O primeiro elemento [subscribeKeys] é ignorado, usamos apenas getKeys
   const [, getKeys] = useKeyboardControls();
+
+  // Hook de interação para acessar objetos próximos
+  const interact = useInteraction((state) => state.interact);
+  const zoomState = useInteraction((state) => state.zoomState);
 
   // Velocidade de movimento do jogador (unidades por segundo)
   const speed = 5;
 
+  // Referência para debounce da tecla E (evita múltiplas interações)
+  const lastInteractTime = useRef(0);
+  const interactCooldown = 500; // 500ms entre interações
+
   /**
    * useFrame: Executa a cada frame de renderização (~60fps)
-   *
-   * @param state - Estado do Three.js (contém câmera, cena, etc)
    */
   useFrame((state) => {
     // Aguarda o corpo físico estar inicializado
     if (!rb.current) return;
 
     // === CAPTURA DE INPUT ===
-    // Obtém o estado atual das teclas (true = pressionada)
-    const { forward, backward, left, right } = getKeys();
+    const { forward, backward, left, right, interact: interactKey } = getKeys();
 
-    // === CÁLCULO DE MOVIMENTO ===
-    // Cria vetor de velocidade baseado nas teclas pressionadas
-    // Sistema de coordenadas: X = esquerda/direita, Z = frente/trás
+    // === SISTEMA DE INTERAÇÃO ===
+    // Verifica se tecla E foi pressionada e se passou o cooldown
+    const now = Date.now();
+    if (interactKey && now - lastInteractTime.current > interactCooldown) {
+      // Passa a posição atual do jogador para o sistema de interação
+      const translation = rb.current.translation();
+      const playerPos: [number, number, number] = [
+        translation.x,
+        translation.y + 0.8, // Altura da câmera
+        translation.z
+      ];
+      interact(playerPos); // Executa interação com objeto mais próximo (ativa zoom)
+      lastInteractTime.current = now;
+    }
+
+    // === DESABILITA MOVIMENTO DURANTE ZOOM ===
+    // Se está fazendo zoom, não permite movimento
+    if (zoomState.isZooming) {
+      rb.current.setLinvel({ x: 0, y: rb.current.linvel().y, z: 0 }, true);
+      return;
+    }
+
+    // === CÁLCULO DE MOVIMENTO BASEADO NA DIREÇÃO DO OLHAR ===
+    // Cria vetor de movimento inicial
     const velocity = new THREE.Vector3(0, 0, 0);
-    if (forward) velocity.z -= speed; // W ou ↑: move para frente (-Z)
-    if (backward) velocity.z += speed; // S ou ↓: move para trás (+Z)
-    if (left) velocity.x -= speed; // A ou ←: move para esquerda (-X)
-    if (right) velocity.x += speed; // D ou →: move para direita (+X)
+    
+    // Captura a direção para onde a câmera está olhando
+    const cameraDirection = new THREE.Vector3();
+    state.camera.getWorldDirection(cameraDirection);
+    
+    // Remove o componente vertical (Y) para movimento apenas no plano horizontal
+    cameraDirection.y = 0;
+    cameraDirection.normalize(); // Normaliza para manter velocidade consistente
+
+    // Calcula o vetor "para a direita" (perpendicular à frente)
+    const rightDirection = new THREE.Vector3();
+    rightDirection.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+    rightDirection.normalize();
+
+    // Aplica movimento baseado nas teclas pressionadas
+    // W/↑: move para onde você está olhando
+    if (forward) {
+      velocity.add(cameraDirection.clone().multiplyScalar(speed));
+    }
+    // S/↓: move para trás (oposto da direção do olhar)
+    if (backward) {
+      velocity.add(cameraDirection.clone().multiplyScalar(-speed));
+    }
+    // A/←: move para a esquerda (perpendicular ao olhar)
+    if (left) {
+      velocity.add(rightDirection.clone().multiplyScalar(-speed));
+    }
+    // D/→: move para a direita (perpendicular ao olhar)
+    if (right) {
+      velocity.add(rightDirection.clone().multiplyScalar(speed));
+    }
 
     // === APLICAÇÃO DA FÍSICA ===
-    // Preserva a velocidade vertical (Y) para manter a gravidade funcionando
-    // Sem isso, o jogador flutuaria ao invés de cair
     const currentVel = rb.current.linvel();
-
-    // Define a velocidade linear do corpo físico
-    // - x, z: controlados pelo jogador
-    // - y: controlado pela gravidade
     rb.current.setLinvel(
       { x: velocity.x, y: currentVel.y, z: velocity.z },
-      true, // wakeUp: garante que o corpo não "durma" (otimização do Rapier)
+      true,
     );
 
     // === SINCRONIZAÇÃO DA CÂMERA ===
-    // Posiciona a câmera na "cabeça" do jogador (primeira pessoa)
-    const translation = rb.current.translation();
-    state.camera.position.set(
-      translation.x, // Mesma posição X do jogador
-      translation.y + 1.5, // 1.5 unidades acima (altura dos olhos)
-      translation.z, // Mesma posição Z do jogador
-    );
-    // Nota: A rotação da câmera é controlada pelo PointerLockControls
+    // Durante zoom, a câmera é controlada pelo CameraZoom component
+    // Caso contrário, segue o jogador normalmente
+    if (!zoomState.isZooming) {
+      const translation = rb.current.translation();
+      state.camera.position.set(
+        translation.x,
+        translation.y + 0.8,
+        translation.z,
+      );
+    }
   });
 
   return (
-    /**
-     * RigidBody: Corpo físico do jogador
-     *
-     * - ref: Referência para manipular via código
-     * - colliders={false}: Desativa collider automático (usamos CapsuleCollider)
-     * - enabledRotations: [X, Y, Z] - Trava rotações para evitar "tombar"
-     * - position: Posição inicial [x, y, z] - Ajuste Y para spawnar dentro da casa
-     */
     <RigidBody
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[0, 2, 0]} // AJUSTE AQUI para mudar spawn inicial
+      position={[0, 1, 0]}
     >
-      {/**
-       * CapsuleCollider: Forma de colisão do jogador
-       *
-       * args={[halfHeight, radius]}
-       * - halfHeight (0.75): Metade da altura do cilindro central
-       * - radius (0.5): Raio das esferas nas pontas
-       *
-       * Altura total = halfHeight * 2 + radius * 2 = 2.5 unidades
-       */}
-      <CapsuleCollider args={[0.75, 0.5]} />
+      <CapsuleCollider args={[0.5, 0.3]} />
     </RigidBody>
   );
 }
