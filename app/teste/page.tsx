@@ -1,9 +1,9 @@
 /**
  * Página Principal - Jogo em Terceira Pessoa
  *
- * Esta página renderiza a cena 3D com:
+ * Esta página renderiza a cene 3D com:
  * - Personagem 3D com animações
- * - Câmera em terceira pessoa
+ * - Câmera em terceira pessoa (over-the-shoulder)
  * - Sistema de física com Rapier
  * - Controles WASD + Mouse
  * - Sistema de interação (tecla E)
@@ -55,17 +55,21 @@ function Scene() {
           {/* === JOGADOR 3D === */}
           <Player3D 
             modelPath="/models/character_final_.glb"
-            scale={1}
+            scale={0.2}
             speed={3}
             runSpeed={6}
             onPositionChange={setPlayerPosition}
           />
 
           {/* === CÂMERA EM TERCEIRA PESSOA === */}
+          {/* 
+            distance={1.8}     → câmera bem próxima, fica dentro da casa
+            lookAtHeight={0.8} → mira no peito do personagem
+          */}
           <CameraThirdPerson
             targetPosition={playerPosition}
-            distance={5}
-            height={2}
+            distance={1.8}
+            lookAtHeight={0.8}
             smoothness={0.1}
             rotationSpeed={0.002}
           />
@@ -95,8 +99,12 @@ export default function Teste() {
   return (
     <KeyboardControls map={map}>
       <div style={{ width: "100vw", height: "100vh", background: "#111" }}>
-        {/* Canvas 3D */}
-        <Canvas camera={{ position: [0, 5, 10], fov: 75 }}>
+        {/* 
+          Canvas: posição inicial da câmera próxima ao spawn do jogador (0,1,0)
+          Isso evita o "salto" no primeiro frame quando a câmera ainda não foi 
+          inicializada pelo CameraThirdPerson.
+        */}
+        <Canvas camera={{ position: [0, 1.8, 1.8], fov: 75 }}>
           <Scene />
         </Canvas>
 
