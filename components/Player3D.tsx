@@ -1,20 +1,15 @@
 /**
- * Player3D - Jogador em Terceira Pessoa
+ * Player3D - Jogador em Terceira Pessoa (VERSÃO CORRIGIDA - v3)
  *
- * Usa três modelos .glb separados para cada estado:
- *   - character_final_.glb  → idle (parado)
- *   - Walking.glb           → andando para frente / laterais
- *   - Walking_Backwards.glb → andando para trás
- *
- * Como useGLTF não pode ser chamado condicionalmente, cada modelo
- * é um sub-componente próprio. O Player3D decide qual renderizar.
+ * Correção de altura: Offset POSITIVO para levantar o personagem
  */
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls, useGLTF, useAnimations } from "@react-three/drei";
 import { RigidBody, CapsuleCollider, RapierRigidBody } from "@react-three/rapier";
+import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 import { useInteraction } from "./interaction/useInteraction";
 
@@ -24,26 +19,63 @@ import { useInteraction } from "./interaction/useInteraction";
 const SPAWN = { x: 0, y: 1, z: 0 };
 const RESPAWN_LIMIT_Y = -5;
 
-// Offset Y do modelo dentro do RigidBody para os pés tocarem o chão.
-// Se ainda voar → diminui (ex: -0.5). Se entrar no chão → aumenta (ex: -0.35).
-const MODEL_Y_OFFSET = -0.45;
+// CORRIGIDO: Offset POSITIVO para LEVANTAR o modelo
+// Se ainda estiver baixo, aumente este valor (ex: 0.0, 0.1, 0.2)
+const MODEL_Y_OFFSET = -0.1;
 
-// Tipo de estado de movimento
 type AnimState = "idle" | "walk" | "walkBack";
 
 // ============================================================
-// SUB-COMPONENTES — um por modelo .glb
+// SUB-COMPONENTES
 // ============================================================
 
 /** Modelo parado */
 function IdleModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/character_final_.glb");
+  
+  // Clone usando SkeletonUtils para garantir animações independentes
+  const clone = useMemo(() => {
+    const clonedScene = SkeletonUtils.clone(scene);
+    
+    // Corrige materiais para evitar transparência
+    clonedScene.traverse((node: any) => {
+      if (node.isMesh || node.isSkinnedMesh) {
+        if (node.material) {
+          if (Array.isArray(node.material)) {
+            node.material = node.material.map((mat: any) => {
+              const clonedMat = mat.clone();
+              clonedMat.transparent = false;
+              clonedMat.opacity = 1;
+              clonedMat.depthWrite = true;
+              clonedMat.depthTest = true;
+              return clonedMat;
+            });
+          } else {
+            node.material = node.material.clone();
+            node.material.transparent = false;
+            node.material.opacity = 1;
+            node.material.depthWrite = true;
+            node.material.depthTest = true;
+          }
+        }
+      }
+    });
+    
+    return clonedScene;
+  }, [scene]);
+
   const { actions } = useAnimations(animations, ref);
 
   useEffect(() => {
     const firstAction = Object.values(actions)[0];
     if (firstAction) {
+      // Remove root motion
+      const clip = firstAction.getClip();
+      clip.tracks = clip.tracks.filter(
+        (track) => !track.name.toLowerCase().includes('position')
+      );
+      
       firstAction.reset().fadeIn(0.2).play();
       return () => { firstAction.fadeOut(0.2); };
     }
@@ -51,7 +83,7 @@ function IdleModel({ scale }: { scale: number }) {
 
   return (
     <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
-      <primitive object={scene} />
+      <primitive object={clone} />
     </group>
   );
 }
@@ -60,11 +92,46 @@ function IdleModel({ scale }: { scale: number }) {
 function WalkModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/Walking.glb");
+  
+  const clone = useMemo(() => {
+    const clonedScene = SkeletonUtils.clone(scene);
+    
+    clonedScene.traverse((node: any) => {
+      if (node.isMesh || node.isSkinnedMesh) {
+        if (node.material) {
+          if (Array.isArray(node.material)) {
+            node.material = node.material.map((mat: any) => {
+              const clonedMat = mat.clone();
+              clonedMat.transparent = false;
+              clonedMat.opacity = 1;
+              clonedMat.depthWrite = true;
+              clonedMat.depthTest = true;
+              return clonedMat;
+            });
+          } else {
+            node.material = node.material.clone();
+            node.material.transparent = false;
+            node.material.opacity = 1;
+            node.material.depthWrite = true;
+            node.material.depthTest = true;
+          }
+        }
+      }
+    });
+    
+    return clonedScene;
+  }, [scene]);
+
   const { actions } = useAnimations(animations, ref);
 
   useEffect(() => {
     const firstAction = Object.values(actions)[0];
     if (firstAction) {
+      const clip = firstAction.getClip();
+      clip.tracks = clip.tracks.filter(
+        (track) => !track.name.toLowerCase().includes('position')
+      );
+      
       firstAction.reset().fadeIn(0.2).play();
       return () => { firstAction.fadeOut(0.2); };
     }
@@ -72,7 +139,7 @@ function WalkModel({ scale }: { scale: number }) {
 
   return (
     <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
-      <primitive object={scene} />
+      <primitive object={clone} />
     </group>
   );
 }
@@ -81,11 +148,46 @@ function WalkModel({ scale }: { scale: number }) {
 function WalkBackModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/Walking_Backwards.glb");
+  
+  const clone = useMemo(() => {
+    const clonedScene = SkeletonUtils.clone(scene);
+    
+    clonedScene.traverse((node: any) => {
+      if (node.isMesh || node.isSkinnedMesh) {
+        if (node.material) {
+          if (Array.isArray(node.material)) {
+            node.material = node.material.map((mat: any) => {
+              const clonedMat = mat.clone();
+              clonedMat.transparent = false;
+              clonedMat.opacity = 1;
+              clonedMat.depthWrite = true;
+              clonedMat.depthTest = true;
+              return clonedMat;
+            });
+          } else {
+            node.material = node.material.clone();
+            node.material.transparent = false;
+            node.material.opacity = 1;
+            node.material.depthWrite = true;
+            node.material.depthTest = true;
+          }
+        }
+      }
+    });
+    
+    return clonedScene;
+  }, [scene]);
+
   const { actions } = useAnimations(animations, ref);
 
   useEffect(() => {
     const firstAction = Object.values(actions)[0];
     if (firstAction) {
+      const clip = firstAction.getClip();
+      clip.tracks = clip.tracks.filter(
+        (track) => !track.name.toLowerCase().includes('position')
+      );
+      
       firstAction.reset().fadeIn(0.2).play();
       return () => { firstAction.fadeOut(0.2); };
     }
@@ -93,7 +195,7 @@ function WalkBackModel({ scale }: { scale: number }) {
 
   return (
     <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
-      <primitive object={scene} />
+      <primitive object={clone} />
     </group>
   );
 }
@@ -188,7 +290,6 @@ export function Player3D({
       if (right) velocity.add(rightDirection.clone().multiplyScalar(currentSpeed));
 
       // === ROTAÇÃO ===
-      // Quando vai para trás mantém a rotação atual (não vira)
       if (velocity.length() > 0 && !goingBackward) {
         const angle = Math.atan2(velocity.x, velocity.z);
         rotationRef.current = angle;
@@ -222,10 +323,15 @@ export function Player3D({
       enabledRotations={[false, false, false]}
       position={[SPAWN.x, SPAWN.y, SPAWN.z]}
       type="dynamic"
+      lockRotations={true}
+      friction={0.7}
+      restitution={0}
+      linearDamping={0.5}
     >
-      <CapsuleCollider args={[0.15, 0.25]} />
+      {/* Collider - ajuste se necessário */}
+      <CapsuleCollider args={[0.2, 0.3]} position={[0, 0.4, 0]} />
 
-      {/* Grupo de rotação — gira o modelo na direção do movimento */}
+      {/* Grupo de rotação */}
       <group rotation={[0, rotation, 0]}>
         {animState === "idle" && <IdleModel scale={scale} />}
         {animState === "walk" && <WalkModel scale={scale} />}
@@ -235,7 +341,7 @@ export function Player3D({
   );
 }
 
-// Preload dos três modelos para não ter delay na troca
+// Preload
 useGLTF.preload("/models/character_final_.glb");
 useGLTF.preload("/models/Walking.glb");
 useGLTF.preload("/models/Walking_Backwards.glb");
