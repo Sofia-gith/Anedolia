@@ -110,7 +110,9 @@ export function CameraZoom() {
     camera.quaternion.slerpQuaternions(startRot, targetRotation.current, progress);
     
     // Durante o zoom in, força a câmera a olhar para o objeto
-    // Isso garante que o objeto fique perfeitamente centralizado
+    // Isso garante que o objeto fique centralizado
+
+
     if (isZoomingIn.current && progress > 0.1) {
       camera.lookAt(lookAtTarget.current);
     }
