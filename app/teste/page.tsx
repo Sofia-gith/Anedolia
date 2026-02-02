@@ -52,7 +52,7 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
 /**
  * Componente interno da cena (precisa estar dentro do Canvas)
  */
-function Scene({ currentColorProgress }: { currentColorProgress: number }) {
+function Scene({ colorProgress }: { colorProgress: number }) {
   // Estado da posição do jogador (atualizado pelo Player3D)
   const [playerPosition, setPlayerPosition] = useState(
     new THREE.Vector3(0, 1, 0),
@@ -99,7 +99,7 @@ function Scene({ currentColorProgress }: { currentColorProgress: number }) {
       </Physics>
 
       {/* === EFEITOS VISUAIS === */}
-      <AnedoliaEffects colorProgress={currentColorProgress} />
+      <AnedoliaEffects colorProgress={colorProgress} />
     </>
   );
 }
@@ -108,46 +108,7 @@ export default function Teste() {
   const [interactedObjects, setInteractedObjects] = useState<Set<string>>(
     new Set(),
   );
-  const [targetColorProgress, setTargetColorProgress] = useState(0);
-  const [currentColorProgress, setCurrentColorProgress] = useState(0);
-  const [isColorActive, setIsColorActive] = useState(false);
-
-  // Smooth color transition animation
-  useEffect(() => {
-    if (!isColorActive) {
-      // Fade out smoothly
-      if (currentColorProgress > 0) {
-        const fadeOutInterval = setInterval(() => {
-          setCurrentColorProgress((prev) => {
-            const newValue = prev - 0.01;
-            if (newValue <= 0) {
-              clearInterval(fadeOutInterval);
-              return 0;
-            }
-            return newValue;
-          });
-        }, 16); // ~60fps
-
-        return () => clearInterval(fadeOutInterval);
-      }
-    } else {
-      // Fade in smoothly
-      if (currentColorProgress < targetColorProgress) {
-        const fadeInInterval = setInterval(() => {
-          setCurrentColorProgress((prev) => {
-            const newValue = prev + 0.01;
-            if (newValue >= targetColorProgress) {
-              clearInterval(fadeInInterval);
-              return targetColorProgress;
-            }
-            return newValue;
-          });
-        }, 16); // ~60fps
-
-        return () => clearInterval(fadeInInterval);
-      }
-    }
-  }, [isColorActive, targetColorProgress, currentColorProgress]);
+  const [colorProgress, setColorProgress] = useState(0);
 
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
@@ -159,18 +120,14 @@ export default function Teste() {
         newInteractedObjects.add(objeto);
         setInteractedObjects(newInteractedObjects);
 
-        // Calculate new color progress
+        // Calculate new color progress - accumulates permanently
         const colorValue = OBJECT_COLOR_VALUES[objeto] || 0.1;
-        const newProgress = Math.min(targetColorProgress + colorValue, 1);
-        setTargetColorProgress(newProgress);
-        setIsColorActive(true);
+        const newProgress = Math.min(colorProgress + colorValue, 1);
+        setColorProgress(newProgress);
 
-        console.log(`Color progress: ${newProgress * 100}%`);
-
-        // Fade back to grayscale after 6 seconds
-        setTimeout(() => {
-          setIsColorActive(false);
-        }, 6000);
+        console.log(
+          `Color progress: ${newProgress * 100}% (${objeto} added ${colorValue * 100}%)`,
+        );
       }
     };
 
@@ -185,7 +142,7 @@ export default function Teste() {
         handleObjectInteracted as EventListener,
       );
     };
-  }, [interactedObjects, targetColorProgress]);
+  }, [interactedObjects, colorProgress]);
 
   return (
     <GenGemini>
@@ -207,7 +164,7 @@ export default function Teste() {
             }}
           >
             <Suspense fallback={null}>
-              <Scene currentColorProgress={currentColorProgress} />
+              <Scene colorProgress={colorProgress} />
             </Suspense>
           </Canvas>
 
