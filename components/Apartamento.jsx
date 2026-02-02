@@ -1148,14 +1148,12 @@ export function Model(props) {
               position={[-268.529, 91, 100.599]}
               rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
             />
-            <InteractiveObject objeto="café">
-              <mesh
-                geometry={nodes["7_Coffee_Pot_Material_#141_0"].geometry}
-                material={materials.Material_141}
-                position={[-238.936, 91, 101.781]}
-                rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
-              />
-            </InteractiveObject>
+            <mesh
+              geometry={nodes["7_Coffee_Pot_Material_#141_0"].geometry}
+              material={materials.Material_141}
+              position={[-238.936, 91, 101.781]}
+              rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+            />
             <mesh
               geometry={nodes["7_Chocolate_Pot_Material_#143_0"].geometry}
               material={materials.Material_143}
@@ -1168,31 +1166,33 @@ export function Model(props) {
               position={[368.359, 60, -632.894]}
               rotation={[-Math.PI / 2, 0, 2.299]}
             />
-            <mesh
-              geometry={nodes["7_Coffee_machine_Material_#140_0"].geometry}
-              material={materials.Material_140}
-              position={[-178.32, 91, 89.944]}
-              rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-              scale={0.1}
-            />
+            <InteractiveObject objeto="café">
+              <mesh
+                geometry={nodes["7_Coffee_machine_Material_#140_0"].geometry}
+                material={materials.Material_140}
+                position={[-178.32, 91, 89.944]}
+                rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+                scale={0.1}
+              />
+              <mesh
+                geometry={nodes["7_Cup_4_Ceramic_0"].geometry}
+                material={materials["4_Ceramic"]}
+                position={[-198.439, 91.083, 67.189]}
+                rotation={[0, -Math.PI / 2, 0]}
+              />
+              <mesh
+                geometry={nodes["7_Cup_4_Ceramic_0_1"].geometry}
+                material={materials["4_Ceramic"]}
+                position={[-211.552, 91.083, 67.189]}
+                rotation={[0, -Math.PI / 2, 0]}
+              />
+            </InteractiveObject>
             <mesh
               geometry={nodes["7_Meat_Board_Material_#144_0"].geometry}
               material={materials.Material_144}
               position={[-274.791, 106.834, 10.561]}
               rotation={[-Math.PI / 2, 1.472, Math.PI / 2]}
               scale={0.8}
-            />
-            <mesh
-              geometry={nodes["7_Cup_4_Ceramic_0"].geometry}
-              material={materials["4_Ceramic"]}
-              position={[-198.439, 91.083, 67.189]}
-              rotation={[0, -Math.PI / 2, 0]}
-            />
-            <mesh
-              geometry={nodes["7_Cup_4_Ceramic_0_1"].geometry}
-              material={materials["4_Ceramic"]}
-              position={[-211.552, 91.083, 67.189]}
-              rotation={[0, -Math.PI / 2, 0]}
             />
           </group>
         </group>
