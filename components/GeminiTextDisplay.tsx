@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 /**
@@ -11,6 +11,14 @@ export function GeminiTextDisplay() {
     objeto: string;
     texto: string;
   } | null>(null);
+
+  const handleClose = useCallback(() => {
+    // Unlock the pointer if it's locked (for 3D controls)
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    setCurrentText(null);
+  }, []);
 
   useEffect(() => {
     const handleShowText = (e: CustomEvent) => {
@@ -27,6 +35,21 @@ export function GeminiTextDisplay() {
       );
     };
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && currentText) {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentText, handleClose]);
 
   console.log("Estado atual:", currentText);
 
@@ -60,7 +83,10 @@ export function GeminiTextDisplay() {
         backgroundColor: "rgba(0, 0, 0, 0.8)",
         backdropFilter: "blur(10px)",
       }}
-      onClick={() => setCurrentText(null)}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleClose();
+      }}
     >
       {/* Imagem no centro */}
       <div
