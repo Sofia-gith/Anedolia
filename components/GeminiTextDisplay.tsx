@@ -17,8 +17,18 @@ export function GeminiTextDisplay() {
     if (document.pointerLockElement) {
       document.exitPointerLock();
     }
+
+    // Dispatch event to increment color progress
+    if (currentText) {
+      window.dispatchEvent(
+        new CustomEvent("objectInteracted", {
+          detail: { objeto: currentText.objeto },
+        }),
+      );
+    }
+
     setCurrentText(null);
-  }, []);
+  }, [currentText]);
 
   useEffect(() => {
     const handleShowText = (e: CustomEvent) => {

@@ -29,7 +29,7 @@ import {
 import { Physics, RigidBody } from "@react-three/rapier";
 // Canvas principal do React Three Fiber
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import GenGemini from "@/components/GenGemini";
 
 /**
@@ -48,7 +48,97 @@ const map = [
   { name: "jump", keys: ["Space"] },
 ];
 
+// Define color progress per object (percentage each object adds)
+const OBJECT_COLOR_VALUES: Record<string, number> = {
+  café: 0.9, // 10%
+  planta: 0.15, // 15%
+  livros: 0.2, // 20%
+  espelho: 0.25, // 25%
+  quadro: 0.3, // 30%
+};
+
 export default function Teste() {
+  const [interactedObjects, setInteractedObjects] = useState<Set<string>>(
+    new Set(),
+  );
+  const [targetColorProgress, setTargetColorProgress] = useState(0);
+  const [currentColorProgress, setCurrentColorProgress] = useState(0);
+  const [isColorActive, setIsColorActive] = useState(false);
+
+  // Smooth color transition animation
+  useEffect(() => {
+    if (!isColorActive) {
+      // Fade out smoothly
+      if (currentColorProgress > 0) {
+        const fadeOutInterval = setInterval(() => {
+          setCurrentColorProgress((prev) => {
+            const newValue = prev - 0.01;
+            if (newValue <= 0) {
+              clearInterval(fadeOutInterval);
+              return 0;
+            }
+            return newValue;
+          });
+        }, 16); // ~60fps
+
+        return () => clearInterval(fadeOutInterval);
+      }
+    } else {
+      // Fade in smoothly
+      if (currentColorProgress < targetColorProgress) {
+        const fadeInInterval = setInterval(() => {
+          setCurrentColorProgress((prev) => {
+            const newValue = prev + 0.01;
+            if (newValue >= targetColorProgress) {
+              clearInterval(fadeInInterval);
+              return targetColorProgress;
+            }
+            return newValue;
+          });
+        }, 16); // ~60fps
+
+        return () => clearInterval(fadeInInterval);
+      }
+    }
+  }, [isColorActive, targetColorProgress, currentColorProgress]);
+
+  useEffect(() => {
+    const handleObjectInteracted = (e: CustomEvent) => {
+      const { objeto } = e.detail;
+
+      // Check if this object was already interacted with
+      if (!interactedObjects.has(objeto)) {
+        const newInteractedObjects = new Set(interactedObjects);
+        newInteractedObjects.add(objeto);
+        setInteractedObjects(newInteractedObjects);
+
+        // Calculate new color progress
+        const colorValue = OBJECT_COLOR_VALUES[objeto] || 0.1;
+        const newProgress = Math.min(targetColorProgress + colorValue, 1);
+        setTargetColorProgress(newProgress);
+        setIsColorActive(true);
+
+        console.log(`Color progress: ${newProgress * 100}%`);
+
+        // Fade back to grayscale after 6 seconds
+        setTimeout(() => {
+          setIsColorActive(false);
+        }, 6000);
+      }
+    };
+
+    window.addEventListener(
+      "objectInteracted",
+      handleObjectInteracted as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "objectInteracted",
+        handleObjectInteracted as EventListener,
+      );
+    };
+  }, [interactedObjects, targetColorProgress]);
   return (
     // KeyboardControls: Provedor de contexto que captura inputs do teclado
     // O componente Player acessa essas teclas via useKeyboardControls()
@@ -109,7 +199,7 @@ export default function Teste() {
               - colorProgress: 0 = cinza total, 1 = cores restauradas
               - Aumentar esse valor conforme o jogador interage com objetos
             */}
-              <AnedoliaEffects colorProgress={0} />
+              <AnedoliaEffects colorProgress={currentColorProgress} />
             </Suspense>
           </Canvas>
         </GenGemini>
