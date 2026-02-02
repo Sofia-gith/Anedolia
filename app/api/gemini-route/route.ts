@@ -5,14 +5,14 @@ const PROMPT = `Gere 5 textos sentimentais, cada um sobre recuperar cor e memór
 export async function GET() {
   console.log("=== INICIANDO CHAMADA GEMINI ===");
   
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-  console.log("API Key presente?", !!apiKey);
+  const apiKey = process.env.GOOGLE_API_KEY 
+ console.log("API Key presente?", !!apiKey);
   console.log("API Key (primeiros 10 chars):", apiKey?.substring(0, 10));
 
   if (!apiKey) {
-    console.error("❌ GOOGLE_GEMINI_API_KEY não está definida");
+    console.error("❌ GOOGLE_API_KEY não está definida");
     return Response.json(
-      { error: "Missing GOOGLE_GEMINI_API_KEY" },
+      { error: "Missing GOOGLE_API_KEY" },
       { status: 500 }
     );
   }

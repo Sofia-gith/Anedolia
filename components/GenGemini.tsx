@@ -71,11 +71,14 @@ export default function GenGemini({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    
     async function fetchGemini() {
       setLoading(true);
       setError("");
+      
       try {
-        // Chama a API Route do servidor ao invés de chamar diretamente do cliente
+        // Chama a API Route do servidor
+        // A API Route está em: app/api/gemini-route/route.ts
         const response = await fetch('/api/gemini-route');
         
         if (!response.ok) {
@@ -89,28 +92,38 @@ export default function GenGemini({ children }: { children: ReactNode }) {
         }
         
         const csv = data.text;
-        if (!csv) throw new Error("Resposta vazia do Gemini");
+        if (!csv) {
+          throw new Error("Resposta vazia do Gemini");
+        }
         
         const parsed = parseCSVToMap(csv);
+        
         // Garante que todas as chaves existam, usando fallback se faltar
         const merged: Record<string, string> = { ...FALLBACKS };
         for (const key of KEYS) {
-          if (parsed[key]) merged[key] = parsed[key];
+          if (parsed[key]) {
+            merged[key] = parsed[key];
+          }
         }
+        
         if (!cancelled) {
           setTexts(merged);
         }
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Erro ao chamar Gemini";
+        const message = err instanceof Error ? err.message : "Erro ao chamar Gemini";
         console.error("Erro no Gemini:", message);
         setError(message);
+        // Usa fallbacks em caso de erro
         setTexts(FALLBACKS);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
+    
     fetchGemini();
+    
     return () => {
       cancelled = true;
     };
