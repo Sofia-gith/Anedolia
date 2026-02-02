@@ -221,8 +221,8 @@ export function Model(props) {
 
             <InteractiveObject
               objeto="planta"
-              position={[0.33, 0.92, -7.08]}
-              interactionDistance={2.5}
+              position={[0.3, 0.83, -6.37]}
+              interactionDistance={2.0}
             >
               <group position={[29.964, 82.508, -637.316]} scale={0.8}>
                 <mesh
@@ -736,237 +736,249 @@ export function Model(props) {
                 material={materials["4_Metal_Black_Rough"]}
               />
             </group>
-            <group
-              position={[94.738, 136.502, -595.764]}
-              rotation={[0.176, 0, -Math.PI]}
-              scale={22.789}
+
+            <InteractiveObject
+              objeto="livros"
+              position={[0.9, 1.37, -5.96]}
+              interactionDistance={2.0}
             >
-              <mesh
-                geometry={nodes["7_Books_01_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[5.085, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[90.651, 128.263, -593.122]}
-              rotation={[-Math.PI / 2, 0, Math.PI]}
-              scale={35}
-            >
-              <mesh
-                geometry={nodes["7_Books_02_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[4.085, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[85.269, 65.807, -465.458]}
-              rotation={[-2.96, 0, -Math.PI]}
-              scale={28}
-            >
-              <mesh
-                geometry={nodes["7_Books_06_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[1.115, 1.407, 0]}
-              />
-            </group>
-            <group
-              position={[85.269, 65.849, -462.196]}
-              rotation={[-2.966, 0, -Math.PI]}
-              scale={28}
-            >
-              <mesh
-                geometry={nodes["7_Books_04_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[3.115, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[84.722, 66.861, -495.277]}
-              rotation={[-Math.PI / 2, 0, -Math.PI]}
-              scale={29.09}
-            >
-              <mesh
-                geometry={nodes["7_Books_05_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[2.115, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[90.164, 67.366, -542.849]}
-              rotation={[-0.456, 0.88, 0.361]}
-              scale={28.198}
-            >
-              <mesh
-                geometry={nodes["7_Books_10_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-0.79, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[90.708, 66.086, -548.986]}
-              rotation={[-0.374, 0.675, 0.24]}
-              scale={27.267}
-            >
-              <mesh
-                geometry={nodes["7_Books_11_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-1.672, 1.417, 0]}
-              />
-            </group>
-            <group
-              position={[85.269, 65.849, -468.433]}
-              rotation={[-2.941, 0, -Math.PI]}
-              scale={28}
-            >
-              <mesh
-                geometry={nodes["7_Books_09_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[0.21, 1.418, 0]}
-              />
-            </group>
-            <group
-              position={[94.738, 136.157, -605.522]}
-              rotation={[0.23, 0, -Math.PI]}
-              scale={22.789}
-            >
-              <mesh
-                geometry={nodes["7_Books_00_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[6.085, 1.418, 0]}
-              />
-            </group>
-            <group
-              position={[84.722, 73.061, -495.277]}
-              rotation={[-Math.PI / 2, 0, -Math.PI]}
-              scale={29.09}
-            >
-              <mesh
-                geometry={nodes["7_Books_20_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[6.083, -0.612, 0]}
-              />
-            </group>
-            <group
-              position={[90.651, 116.612, -593.122]}
-              rotation={[-Math.PI / 2, 0, Math.PI]}
-              scale={35}
-            >
-              <mesh
-                geometry={nodes["7_Books_19_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-2.917, -0.611, 0]}
-              />
-            </group>
-            <group
-              position={[94.739, 137.038, -598.664]}
-              rotation={[0.176, 0, -Math.PI]}
-              scale={22.789}
-            >
-              <mesh
-                geometry={nodes["7_Books_08_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-1.913, -0.574, 0]}
-              />
-            </group>
-            <group
-              position={[85.269, 65.849, -458.806]}
-              rotation={[-2.963, 0, -Math.PI]}
-              scale={28}
-            >
-              <mesh
-                geometry={nodes["7_Books_18_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-4.802, -0.612, 0]}
-              />
-            </group>
-            <group
-              position={[94.739, 135.282, -597.354]}
-              rotation={[0.176, 0, -Math.PI]}
-              scale={22.789}
-            >
-              <mesh
-                geometry={nodes["7_Books_17_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-3.916, -0.612, 0]}
-              />
-            </group>
-            <group
-              position={[94.739, 136.285, -603.109]}
-              rotation={[0.176, 0, -Math.PI]}
-              scale={22.789}
-            >
-              <mesh
-                geometry={nodes["7_Books_16_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[1.083, -0.613, 0]}
-              />
-            </group>
-            <group
-              position={[90.651, 120.51, -594.414]}
-              rotation={[-Math.PI / 2, 0, Math.PI]}
-              scale={35}
-            >
-              <mesh
-                geometry={nodes["7_Books_15_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[2.086, -0.539, 0]}
-              />
-            </group>
-            <group
-              position={[84.722, 69.81, -495.277]}
-              rotation={[-Math.PI / 2, 0, -Math.PI]}
-              scale={29.09}
-            >
-              <mesh
-                geometry={nodes["7_Books_07_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[-0.917, -0.613, 0]}
-              />
-            </group>
-            <group
-              position={[94.739, 135.137, -600.909]}
-              rotation={[0.176, 0, -Math.PI]}
-              scale={22.789}
-            >
-              <mesh
-                geometry={nodes["7_Books_14_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[0.083, -0.623, 0]}
-              />
-            </group>
-            <group
-              position={[90.651, 123.162, -593.122]}
-              rotation={[-Math.PI / 2, 0, Math.PI]}
-              scale={35}
-            >
-              <mesh
-                geometry={nodes["7_Books_03_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[3.083, -0.612, 0]}
-              />
-            </group>
-            <group
-              position={[85.269, 65.848, -455.477]}
-              rotation={[-2.959, 0, -Math.PI]}
-              scale={28}
-            >
-              <mesh
-                geometry={nodes["7_Books_13_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[4.083, -0.613, 0]}
-              />
-            </group>
-            <group
-              position={[84.722, 65.61, -494.68]}
-              rotation={[-Math.PI / 2, 0, -Math.PI]}
-              scale={29.09}
-            >
-              <mesh
-                geometry={nodes["7_Books_12_Material_#137_0"].geometry}
-                material={materials.Material_137}
-                position={[5.087, -0.653, 0]}
-              />
-            </group>
+              <group>
+                <group
+                  position={[94.738, 136.502, -595.764]}
+                  rotation={[0.176, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_01_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[5.085, 1.417, 0]}
+                  />
+                </group>
+                <group
+                  position={[90.651, 128.263, -593.122]}
+                  rotation={[-Math.PI / 2, 0, Math.PI]}
+                  scale={35}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_02_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[4.085, 1.417, 0]}
+                  />
+                </group>
+                <group
+                  position={[85.269, 65.807, -465.458]}
+                  rotation={[-2.96, 0, -Math.PI]}
+                  scale={28}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_06_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[1.115, 1.407, 0]}
+                  />
+                </group>
+
+                <group
+                  position={[85.269, 65.849, -462.196]}
+                  rotation={[-2.966, 0, -Math.PI]}
+                  scale={28}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_04_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[3.115, 1.417, 0]}
+                  />
+                </group>
+                <group
+                  position={[84.722, 66.861, -495.277]}
+                  rotation={[-Math.PI / 2, 0, -Math.PI]}
+                  scale={29.09}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_05_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[2.115, 1.417, 0]}
+                  />
+                </group>
+
+                <group
+                  position={[90.164, 67.366, -542.849]}
+                  rotation={[-0.456, 0.88, 0.361]}
+                  scale={28.198}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_10_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-0.79, 1.417, 0]}
+                  />
+                </group>
+                <group
+                  position={[90.708, 66.086, -548.986]}
+                  rotation={[-0.374, 0.675, 0.24]}
+                  scale={27.267}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_11_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-1.672, 1.417, 0]}
+                  />
+                </group>
+                <group
+                  position={[85.269, 65.849, -468.433]}
+                  rotation={[-2.941, 0, -Math.PI]}
+                  scale={28}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_09_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[0.21, 1.418, 0]}
+                  />
+                </group>
+                <group
+                  position={[94.738, 136.157, -605.522]}
+                  rotation={[0.23, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_00_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[6.085, 1.418, 0]}
+                  />
+                </group>
+                <group
+                  position={[84.722, 73.061, -495.277]}
+                  rotation={[-Math.PI / 2, 0, -Math.PI]}
+                  scale={29.09}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_20_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[6.083, -0.612, 0]}
+                  />
+                </group>
+                <group
+                  position={[90.651, 116.612, -593.122]}
+                  rotation={[-Math.PI / 2, 0, Math.PI]}
+                  scale={35}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_19_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-2.917, -0.611, 0]}
+                  />
+                </group>
+                <group
+                  position={[94.739, 137.038, -598.664]}
+                  rotation={[0.176, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_08_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-1.913, -0.574, 0]}
+                  />
+                </group>
+                <group
+                  position={[85.269, 65.849, -458.806]}
+                  rotation={[-2.963, 0, -Math.PI]}
+                  scale={28}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_18_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-4.802, -0.612, 0]}
+                  />
+                </group>
+                <group
+                  position={[94.739, 135.282, -597.354]}
+                  rotation={[0.176, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_17_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-3.916, -0.612, 0]}
+                  />
+                </group>
+                <group
+                  position={[94.739, 136.285, -603.109]}
+                  rotation={[0.176, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_16_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[1.083, -0.613, 0]}
+                  />
+                </group>
+                <group
+                  position={[90.651, 120.51, -594.414]}
+                  rotation={[-Math.PI / 2, 0, Math.PI]}
+                  scale={35}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_15_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[2.086, -0.539, 0]}
+                  />
+                </group>
+                <group
+                  position={[84.722, 69.81, -495.277]}
+                  rotation={[-Math.PI / 2, 0, -Math.PI]}
+                  scale={29.09}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_07_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[-0.917, -0.613, 0]}
+                  />
+                </group>
+                <group
+                  position={[94.739, 135.137, -600.909]}
+                  rotation={[0.176, 0, -Math.PI]}
+                  scale={22.789}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_14_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[0.083, -0.623, 0]}
+                  />
+                </group>
+                <group
+                  position={[90.651, 123.162, -593.122]}
+                  rotation={[-Math.PI / 2, 0, Math.PI]}
+                  scale={35}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_03_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[3.083, -0.612, 0]}
+                  />
+                </group>
+                <group
+                  position={[85.269, 65.848, -455.477]}
+                  rotation={[-2.959, 0, -Math.PI]}
+                  scale={28}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_13_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[4.083, -0.613, 0]}
+                  />
+                </group>
+                <group
+                  position={[84.722, 65.61, -494.68]}
+                  rotation={[-Math.PI / 2, 0, -Math.PI]}
+                  scale={29.09}
+                >
+                  <mesh
+                    geometry={nodes["7_Books_12_Material_#137_0"].geometry}
+                    material={materials.Material_137}
+                    position={[5.087, -0.653, 0]}
+                  />
+                </group>
+              </group>
+            </InteractiveObject>
+
             <group
               position={[-260.842, 91, 28.75]}
               rotation={[-Math.PI / 2, 0, 2.356]}
