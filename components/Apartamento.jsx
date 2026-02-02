@@ -317,6 +317,29 @@ export function Model(props) {
                 position={[2, 0, 0]}
               />
             </group>
+
+            <InteractiveObject
+              objeto="espelho"
+              position={[4.09, 1.00, -0.48]}
+              interactionDistance={2.0}
+            >
+              <group
+                position={[409.496, 100, -47.747]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
+                <mesh
+                  geometry={
+                    nodes["4_BathRoom_Mirror__4_Metal_Black_Rough_0"].geometry
+                  }
+                  material={materials["4_Metal_Black_Rough"]}
+                />
+                <mesh
+                  geometry={nodes["4_BathRoom_Mirror__4_Mirror_0"].geometry}
+                  material={materials["4_Mirror"]}
+                />
+              </group>
+            </InteractiveObject>
+
             <group
               position={[-213.492, 49, -48.092]}
               rotation={[0, Math.PI / 2, 0]}
