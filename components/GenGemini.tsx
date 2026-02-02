@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { GoogleGenAI } from "@google/genai";
 
 const FALLBACKS: Record<string, string> = {
@@ -32,9 +38,36 @@ function parseCSVToMap(csv: string): Record<string, string> {
   return map;
 }
 
-export default function GenGemini({
-  onReady,
-}: { onReady?: (texts: Record<string, string>) => void } = {}) {
+// Context para compartilhar textos com todos os componentes
+interface GeminiContextType {
+  texts: Record<string, string>;
+  loading: boolean;
+  error: string;
+  getTexto: (key: string) => string;
+}
+
+const GeminiContext = createContext<GeminiContextType | null>(null);
+
+// Hook para acessar os textos em qualquer componente filho
+export function useGeminiText(key: string): string {
+  const context = useContext(GeminiContext);
+  if (!context) {
+    throw new Error("useGeminiText deve ser usado dentro de GenGemini");
+  }
+  return context.getTexto(key);
+}
+
+// Hook para acessar todo o contexto
+export function useGemini(): GeminiContextType {
+  const context = useContext(GeminiContext);
+  if (!context) {
+    throw new Error("useGemini deve ser usado dentro de GenGemini");
+  }
+  return context;
+}
+
+// Provider component
+export default function GenGemini({ children }: { children: ReactNode }) {
   const [texts, setTexts] = useState<Record<string, string>>(FALLBACKS);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -46,7 +79,7 @@ export default function GenGemini({
       setError("");
       try {
         const genAI = new GoogleGenAI({
-          apiKey: "",
+          apiKey: "AIzaSyCDNqFyxZjMgkSmMx_T81dNtd5ckfW7c5Q",
         });
         const result = await genAI.models.generateContent({
           model: "gemini-3-flash-preview",
@@ -62,14 +95,12 @@ export default function GenGemini({
         }
         if (!cancelled) {
           setTexts(merged);
-          if (onReady) onReady(merged);
         }
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Erro ao chamar Gemini";
         setError(message);
         setTexts(FALLBACKS);
-        if (onReady) onReady(FALLBACKS);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -78,57 +109,20 @@ export default function GenGemini({
     return () => {
       cancelled = true;
     };
-  }, [onReady]);
+  }, []);
 
-  // Função para exibir texto por chave
-  const getTexto = useCallback(
-    (key: string) => {
-      return texts[key] || FALLBACKS[key] || "";
-    },
-    [texts],
-  );
+  const getTexto = (key: string): string => {
+    return texts[key] || FALLBACKS[key] || "";
+  };
 
-  // Exemplo de UI: lista de botões para testar cada interação
-  const [selected, setSelected] = useState<string>("");
-
-  if (loading) return <div>Carregando textos...</div>;
+  const value: GeminiContextType = {
+    texts,
+    loading,
+    error,
+    getTexto,
+  };
 
   return (
-    <div>
-      {error && (
-        <div style={{ color: "red", marginBottom: 8 }}>
-          Erro: {error} (usando textos de fallback)
-        </div>
-      )}
-      <div style={{ marginBottom: 12 }}>
-        {KEYS.map((key) => (
-          <button
-            key={key}
-            style={{
-              marginRight: 8,
-              padding: "4px 12px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              background: selected === key ? "#e0e0e0" : "#fff",
-            }}
-            onClick={() => setSelected(key)}
-          >
-            {key}
-          </button>
-        ))}
-      </div>
-      {selected && (
-        <div
-          style={{
-            fontStyle: "italic",
-            fontSize: 18,
-            color: "#444",
-            maxWidth: 500,
-          }}
-        >
-          {getTexto(selected)}
-        </div>
-      )}
-    </div>
+    <GeminiContext.Provider value={value}>{children}</GeminiContext.Provider>
   );
 }
