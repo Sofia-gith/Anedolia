@@ -73,7 +73,10 @@ export function GeminiTextDisplay() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && currentText) {
+      if (
+        (e.code === "Space" || e.key === "e" || e.key === "E") &&
+        currentText
+      ) {
         e.preventDefault();
         handleClose();
       }
