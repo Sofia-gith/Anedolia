@@ -455,7 +455,7 @@ export function Model(props) {
               />
             </group>
 
-              {/* MESA DA COZINHA */}
+            {/* MESA DA COZINHA */}
 
             {/* <group
               position={[-276.492, 0, 107.533]}
@@ -1166,7 +1166,11 @@ export function Model(props) {
               position={[368.359, 60, -632.894]}
               rotation={[-Math.PI / 2, 0, 2.299]}
             />
-            <InteractiveObject objeto="café">
+            <InteractiveObject
+              objeto="café"
+              position={[-1.78, 0.91, 0.9]}
+              interactionDistance={2.5}
+            >
               <mesh
                 geometry={nodes["7_Coffee_machine_Material_#140_0"].geometry}
                 material={materials.Material_140}

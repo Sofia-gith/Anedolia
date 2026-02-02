@@ -22,10 +22,7 @@ import { CameraZoom } from "@/components/CameraZoom";
 import { GeminiTextDisplay } from "@/components/GeminiTextDisplay";
 import GenGemini from "@/components/GenGemini";
 
-import {
-  Environment,
-  KeyboardControls,
-} from "@react-three/drei";
+import { Environment, KeyboardControls } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState, useEffect } from "react";
@@ -57,7 +54,9 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
  */
 function Scene({ currentColorProgress }: { currentColorProgress: number }) {
   // Estado da posição do jogador (atualizado pelo Player3D)
-  const [playerPosition, setPlayerPosition] = useState(new THREE.Vector3(0, 1, 0));
+  const [playerPosition, setPlayerPosition] = useState(
+    new THREE.Vector3(0, 1, 0),
+  );
 
   return (
     <>
@@ -68,7 +67,7 @@ function Scene({ currentColorProgress }: { currentColorProgress: number }) {
         <Environment preset="city" />
 
         {/* === JOGADOR 3D === */}
-        <Player3D 
+        <Player3D
           modelPath="/models/character_final_.glb"
           scale={0.2}
           speed={3}
@@ -106,7 +105,9 @@ function Scene({ currentColorProgress }: { currentColorProgress: number }) {
 }
 
 export default function Teste() {
-  const [interactedObjects, setInteractedObjects] = useState<Set<string>>(new Set());
+  const [interactedObjects, setInteractedObjects] = useState<Set<string>>(
+    new Set(),
+  );
   const [targetColorProgress, setTargetColorProgress] = useState(0);
   const [currentColorProgress, setCurrentColorProgress] = useState(0);
   const [isColorActive, setIsColorActive] = useState(false);
@@ -189,16 +190,26 @@ export default function Teste() {
   return (
     <GenGemini>
       <KeyboardControls map={map}>
-        <div style={{ width: "100vw", height: "100vh", background: "#111" }}>
+        <div
+          style={{ width: "100vw", height: "100vh", background: "#111" }}
+          tabIndex={0}
+          onMouseDown={(e) => {
+            // Garante que o div tenha foco quando clicado
+            e.currentTarget.focus();
+          }}
+        >
           {/* Canvas único - corrigido */}
-          <Canvas camera={{ position: [0, 1.8, 1.8], fov: 75 }}>
+          <Canvas
+            camera={{ position: [0, 1.8, 1.8], fov: 75 }}
+            onCreated={({ gl }) => {
+              // Garante que o canvas receba inputs de teclado
+              gl.domElement.style.outline = "none";
+            }}
+          >
             <Suspense fallback={null}>
               <Scene currentColorProgress={currentColorProgress} />
             </Suspense>
           </Canvas>
-
-          {/* === UI DE INTERAÇÃO === */}
-          <InteractionPrompt />
 
           {/* === INSTRUÇÕES === */}
           <div
@@ -215,7 +226,9 @@ export default function Teste() {
               pointerEvents: "none",
             }}
           >
-            <div><strong>Controles:</strong></div>
+            <div>
+              <strong>Controles:</strong>
+            </div>
             <div>WASD - Mover</div>
             <div>Mouse - Girar câmera</div>
             <div>Space - Correr</div>
