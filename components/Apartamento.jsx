@@ -218,15 +218,23 @@ export function Model(props) {
                 material={materials["4_Mirror"]}
               />
             </group>
-            <group position={[29.964, 82.508, -637.316]} scale={0.8}>
-              <mesh
-                geometry={
-                  nodes["5_Vegetation_Plant_5_Vegetation_Palm_0"].geometry
-                }
-                material={materials["5_Vegetation_Palm"]}
-                position={[-14.46, -5.251, -1.805]}
-              />
-            </group>
+
+            <InteractiveObject
+              objeto="planta"
+              position={[0.33, 0.92, -7.08]}
+              interactionDistance={2.5}
+            >
+              <group position={[29.964, 82.508, -637.316]} scale={0.8}>
+                <mesh
+                  geometry={
+                    nodes["5_Vegetation_Plant_5_Vegetation_Palm_0"].geometry
+                  }
+                  material={materials["5_Vegetation_Palm"]}
+                  position={[-14.46, -5.251, -1.805]}
+                />
+              </group>
+            </InteractiveObject>
+
             <group
               position={[412.996, 120, 45.397]}
               rotation={[0, -Math.PI / 2, 0]}
