@@ -10,6 +10,7 @@ Title: Apartamento
 import React, { Suspense } from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
+import { InteractiveObject } from "./InteractiveObject";
 
 useGLTF.preload("/apartamento.glb");
 
@@ -1147,12 +1148,14 @@ export function Model(props) {
               position={[-268.529, 91, 100.599]}
               rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
             />
-            <mesh
-              geometry={nodes["7_Coffee_Pot_Material_#141_0"].geometry}
-              material={materials.Material_141}
-              position={[-238.936, 91, 101.781]}
-              rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
-            />
+            <InteractiveObject objeto="café">
+              <mesh
+                geometry={nodes["7_Coffee_Pot_Material_#141_0"].geometry}
+                material={materials.Material_141}
+                position={[-238.936, 91, 101.781]}
+                rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+              />
+            </InteractiveObject>
             <mesh
               geometry={nodes["7_Chocolate_Pot_Material_#143_0"].geometry}
               material={materials.Material_143}
