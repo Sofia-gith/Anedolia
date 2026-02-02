@@ -100,34 +100,43 @@ export function Model(props) {
                 />
               </group>
             </group>
-            <group
-              position={[394.697, 60, -663.857]}
-              rotation={[-Math.PI / 2, 0, -2.356]}
+
+            <InteractiveObject
+              objeto="quadro"
+              position={[3.95, 0.6, -6.64]}
+              interactionDistance={2.0}
             >
               <group
-                position={[44.206, -4.169, 151.174]}
-                rotation={[-Math.PI, Math.PI / 9, -Math.PI]}
+                position={[394.697, 60, -663.857]}
+                rotation={[-Math.PI / 2, 0, -2.356]}
               >
-                <mesh
-                  geometry={
-                    nodes["4_Bedroom_Abajour_4_Metal_Black_Glossy_0_1"].geometry
-                  }
-                  material={materials["4_Metal_Black_Glossy"]}
-                />
-                <mesh
-                  geometry={
-                    nodes["4_Bedroom_Abajour_4_Light_Material_0_1"].geometry
-                  }
-                  material={materials["4_Light_Material"]}
-                />
-                <mesh
-                  geometry={
-                    nodes["4_Bedroom_Abajour_4_Metal_Chrome_0_1"].geometry
-                  }
-                  material={materials["4_Metal_Chrome"]}
-                />
+                <group
+                  position={[44.206, -4.169, 151.174]}
+                  rotation={[-Math.PI, Math.PI / 9, -Math.PI]}
+                >
+                  <mesh
+                    geometry={
+                      nodes["4_Bedroom_Abajour_4_Metal_Black_Glossy_0_1"]
+                        .geometry
+                    }
+                    material={materials["4_Metal_Black_Glossy"]}
+                  />
+                  <mesh
+                    geometry={
+                      nodes["4_Bedroom_Abajour_4_Light_Material_0_1"].geometry
+                    }
+                    material={materials["4_Light_Material"]}
+                  />
+                  <mesh
+                    geometry={
+                      nodes["4_Bedroom_Abajour_4_Metal_Chrome_0_1"].geometry
+                    }
+                    material={materials["4_Metal_Chrome"]}
+                  />
+                </group>
               </group>
-            </group>
+            </InteractiveObject>
+
             <group
               position={[-104.742, 0, 69.533]}
               rotation={[-Math.PI / 2, 0, 0]}
@@ -320,7 +329,7 @@ export function Model(props) {
 
             <InteractiveObject
               objeto="espelho"
-              position={[4.09, 1.00, -0.48]}
+              position={[4.09, 1.0, -0.48]}
               interactionDistance={2.0}
             >
               <group
