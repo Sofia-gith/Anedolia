@@ -6,7 +6,6 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { GoogleGenAI } from "@google/genai";
 
 const FALLBACKS: Record<string, string> = {
   café: "O aroma do café preenche o ar, trazendo à tona lembranças de manhãs aquecidas por esperança. Um tom sutil de cor dança na xícara, como se a vida sussurrasse: ainda há calor aqui.",
@@ -23,9 +22,7 @@ const FALLBACKS: Record<string, string> = {
 // Chaves fixas das interações
 const KEYS = ["café", "planta", "livros", "espelho", "quadro"];
 
-const PROMPT = `Gere 5 textos sentimentais, cada um sobre recuperar cor e memória, para um jogo chamado Anedolia. Responda em CSV, uma linha por chave: chave,texto. As chaves são: café, planta, livros, espelho, quadro. O texto deve ser breve, profundo e emocional, refletindo a progressão de cor e sentimento do personagem.`;
-
-// Função utilitária para parsear CSV simples (sem vírgulas nos textos)
+// Função utilitária para parsear CSV simples
 function parseCSVToMap(csv: string): Record<string, string> {
   const lines = csv.split(/\r?\n/);
   const map: Record<string, string> = {};
@@ -78,15 +75,22 @@ export default function GenGemini({ children }: { children: ReactNode }) {
       setLoading(true);
       setError("");
       try {
-        const genAI = new GoogleGenAI({
-          apiKey: "AIzaSyCDNqFyxZjMgkSmMx_T81dNtd5ckfW7c5Q",
-        });
-        const result = await genAI.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: PROMPT,
-        });
-        const csv = result.text;
+        // Chama a API Route do servidor ao invés de chamar diretamente do cliente
+        const response = await fetch('/api/gemini-route');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        const csv = data.text;
         if (!csv) throw new Error("Resposta vazia do Gemini");
+        
         const parsed = parseCSVToMap(csv);
         // Garante que todas as chaves existam, usando fallback se faltar
         const merged: Record<string, string> = { ...FALLBACKS };
@@ -99,6 +103,7 @@ export default function GenGemini({ children }: { children: ReactNode }) {
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Erro ao chamar Gemini";
+        console.error("Erro no Gemini:", message);
         setError(message);
         setTexts(FALLBACKS);
       } finally {
