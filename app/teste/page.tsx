@@ -22,10 +22,7 @@ import { CameraZoom } from "@/components/CameraZoom";
 import { GeminiTextDisplay } from "@/components/GeminiTextDisplay";
 import GenGemini from "@/components/GenGemini";
 
-import {
-  Environment,
-  KeyboardControls,
-} from "@react-three/drei";
+import { Environment, KeyboardControls } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState, useEffect } from "react";
@@ -55,9 +52,11 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
 /**
  * Componente interno da cena (precisa estar dentro do Canvas)
  */
-function Scene({ currentColorProgress }: { currentColorProgress: number }) {
+function Scene({ colorProgress }: { colorProgress: number }) {
   // Estado da posição do jogador (atualizado pelo Player3D)
-  const [playerPosition, setPlayerPosition] = useState(new THREE.Vector3(0, 1, 0));
+  const [playerPosition, setPlayerPosition] = useState(
+    new THREE.Vector3(0, 1, 0),
+  );
 
   return (
     <>
@@ -68,7 +67,7 @@ function Scene({ currentColorProgress }: { currentColorProgress: number }) {
         <Environment preset="city" />
 
         {/* === JOGADOR 3D === */}
-        <Player3D 
+        <Player3D
           modelPath="/models/character_final_.glb"
           scale={0.2}
           speed={3}
@@ -100,53 +99,16 @@ function Scene({ currentColorProgress }: { currentColorProgress: number }) {
       </Physics>
 
       {/* === EFEITOS VISUAIS === */}
-      <AnedoliaEffects colorProgress={currentColorProgress} />
+      <AnedoliaEffects colorProgress={colorProgress} />
     </>
   );
 }
 
 export default function Teste() {
-  const [interactedObjects, setInteractedObjects] = useState<Set<string>>(new Set());
-  const [targetColorProgress, setTargetColorProgress] = useState(0);
-  const [currentColorProgress, setCurrentColorProgress] = useState(0);
-  const [isColorActive, setIsColorActive] = useState(false);
-
-  // Smooth color transition animation
-  useEffect(() => {
-    if (!isColorActive) {
-      // Fade out smoothly
-      if (currentColorProgress > 0) {
-        const fadeOutInterval = setInterval(() => {
-          setCurrentColorProgress((prev) => {
-            const newValue = prev - 0.01;
-            if (newValue <= 0) {
-              clearInterval(fadeOutInterval);
-              return 0;
-            }
-            return newValue;
-          });
-        }, 16); // ~60fps
-
-        return () => clearInterval(fadeOutInterval);
-      }
-    } else {
-      // Fade in smoothly
-      if (currentColorProgress < targetColorProgress) {
-        const fadeInInterval = setInterval(() => {
-          setCurrentColorProgress((prev) => {
-            const newValue = prev + 0.01;
-            if (newValue >= targetColorProgress) {
-              clearInterval(fadeInInterval);
-              return targetColorProgress;
-            }
-            return newValue;
-          });
-        }, 16); // ~60fps
-
-        return () => clearInterval(fadeInInterval);
-      }
-    }
-  }, [isColorActive, targetColorProgress, currentColorProgress]);
+  const [interactedObjects, setInteractedObjects] = useState<Set<string>>(
+    new Set(),
+  );
+  const [colorProgress, setColorProgress] = useState(0);
 
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
@@ -158,18 +120,14 @@ export default function Teste() {
         newInteractedObjects.add(objeto);
         setInteractedObjects(newInteractedObjects);
 
-        // Calculate new color progress
+        // Calculate new color progress - accumulates permanently
         const colorValue = OBJECT_COLOR_VALUES[objeto] || 0.1;
-        const newProgress = Math.min(targetColorProgress + colorValue, 1);
-        setTargetColorProgress(newProgress);
-        setIsColorActive(true);
+        const newProgress = Math.min(colorProgress + colorValue, 1);
+        setColorProgress(newProgress);
 
-        console.log(`Color progress: ${newProgress * 100}%`);
-
-        // Fade back to grayscale after 6 seconds
-        setTimeout(() => {
-          setIsColorActive(false);
-        }, 6000);
+        console.log(
+          `Color progress: ${newProgress * 100}% (${objeto} added ${colorValue * 100}%)`,
+        );
       }
     };
 
@@ -184,21 +142,31 @@ export default function Teste() {
         handleObjectInteracted as EventListener,
       );
     };
-  }, [interactedObjects, targetColorProgress]);
+  }, [interactedObjects, colorProgress]);
 
   return (
     <GenGemini>
       <KeyboardControls map={map}>
-        <div style={{ width: "100vw", height: "100vh", background: "#111" }}>
+        <div
+          style={{ width: "100vw", height: "100vh", background: "#111" }}
+          tabIndex={0}
+          onMouseDown={(e) => {
+            // Garante que o div tenha foco quando clicado
+            e.currentTarget.focus();
+          }}
+        >
           {/* Canvas único - corrigido */}
-          <Canvas camera={{ position: [0, 1.8, 1.8], fov: 75 }}>
+          <Canvas
+            camera={{ position: [0, 1.8, 1.8], fov: 75 }}
+            onCreated={({ gl }) => {
+              // Garante que o canvas receba inputs de teclado
+              gl.domElement.style.outline = "none";
+            }}
+          >
             <Suspense fallback={null}>
-              <Scene currentColorProgress={currentColorProgress} />
+              <Scene colorProgress={colorProgress} />
             </Suspense>
           </Canvas>
-
-          {/* === UI DE INTERAÇÃO === */}
-          <InteractionPrompt />
 
           {/* === INSTRUÇÕES === */}
           <div
@@ -215,7 +183,9 @@ export default function Teste() {
               pointerEvents: "none",
             }}
           >
-            <div><strong>Controles:</strong></div>
+            <div>
+              <strong>Controles:</strong>
+            </div>
             <div>WASD - Mover</div>
             <div>Mouse - Girar câmera</div>
             <div>Space - Correr</div>
