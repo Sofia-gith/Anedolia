@@ -16,7 +16,10 @@ import { useInteraction } from "./interaction/useInteraction";
 // ============================================================
 // CONFIGURAÇÕES
 // ============================================================
-const SPAWN = { x: 0, y: 1, z: 0 };
+// Posição ao lado da cama (no quarto, próximo aos livros)
+// Livros estão em [0.90, 1.37, -5.96]
+// Cama está próxima, spawn ao lado direito
+const SPAWN = { x: 1.5, y: 0.5, z: -4.5 };
 const RESPAWN_LIMIT_Y = -5;
 
 // CORRIGIDO: Offset POSITIVO para LEVANTAR o modelo
