@@ -5,8 +5,8 @@ const PROMPT = `Gere 5 textos sentimentais, cada um sobre recuperar cor e memór
 export async function GET() {
   console.log("=== INICIANDO CHAMADA GEMINI ===");
   
-  const apiKey = process.env.GOOGLE_API_KEY 
- console.log("API Key presente?", !!apiKey);
+  const apiKey = process.env.GOOGLE_API_KEY;
+  console.log("API Key presente?", !!apiKey);
   console.log("API Key (primeiros 10 chars):", apiKey?.substring(0, 10));
 
   if (!apiKey) {
@@ -22,21 +22,44 @@ export async function GET() {
     const ai = new GoogleGenAI({ apiKey });
     console.log("✓ GoogleGenAI criado");
     
-    console.log("Gerando conteúdo...");
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: PROMPT,
-    });
-    console.log("✓ Conteúdo gerado");
-
-    const text = response.text;
-    console.log("Texto recebido:", text?.substring(0, 100));
-
-    if (!text) {
-      throw new Error("Resposta vazia do Gemini");
+    // Lista de modelos Gemini 2.x disponíveis (em ordem de preferência)
+    const modelsToTry = [
+      "gemini-2.0-flash-exp",      // Modelo Gemini 2.0 experimental
+      "gemini-2.5-flash",           // Modelo Gemini 2.5 Flash
+      "gemini-1.5-flash-latest",    // Fallback para 1.5
+      "gemini-1.5-pro-latest",      // Fallback para 1.5 Pro
+    ];
+    
+    let responseText = null;
+    let successfulModel = "";
+    
+    // Tenta cada modelo até um funcionar
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`Tentando modelo: ${modelName}...`);
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: PROMPT,
+        });
+        
+        responseText = response.text;
+        successfulModel = modelName;
+        console.log(`✓ Modelo ${modelName} funcionou!`);
+        break;
+      } catch (modelError) {
+        console.log(`❌ Modelo ${modelName} falhou:`, modelError instanceof Error ? modelError.message : String(modelError));
+        continue;
+      }
     }
 
-    return Response.json({ text });
+    if (!responseText) {
+      throw new Error("Nenhum modelo Gemini disponível funcionou. Verifique sua API key ou os modelos disponíveis.");
+    }
+
+    console.log(`✓ Usando modelo: ${successfulModel}`);
+    console.log("Texto recebido:", responseText.substring(0, 100));
+
+    return Response.json({ text: responseText });
   } catch (err) {
     console.error("❌ ERRO COMPLETO:", err);
     console.error("Tipo do erro:", typeof err);
