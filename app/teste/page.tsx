@@ -13,6 +13,7 @@
 "use client";
 
 // === IMPORTS ===
+import { IntroNarrativa } from "@/components/IntroNarrativa";
 import { InteractionPrompt } from "@/components/ui/InteractionPrompt";
 import { Player3D } from "@/components/Player3D";
 import { CameraThirdPerson } from "@/components/CameraThirdPerson";
@@ -109,6 +110,7 @@ export default function Teste() {
     new Set(),
   );
   const [colorProgress, setColorProgress] = useState(0);
+  const [introCompleta, setIntroCompleta] = useState(false);
 
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
@@ -146,7 +148,14 @@ export default function Teste() {
 
   return (
     <GenGemini>
-      <KeyboardControls map={map}>
+      {/* Mostra a intro primeiro */}
+      {!introCompleta && (
+        <IntroNarrativa onComplete={() => setIntroCompleta(true)} />
+      )}
+
+      {/* Jogo aparece só depois da intro */}
+      {introCompleta && (
+        <KeyboardControls map={map}>
         <div
           style={{ width: "100vw", height: "100vh", background: "#111" }}
           tabIndex={0}
@@ -199,6 +208,7 @@ export default function Teste() {
           <GeminiTextDisplay />
         </div>
       </KeyboardControls>
+      )}
     </GenGemini>
   );
 }
