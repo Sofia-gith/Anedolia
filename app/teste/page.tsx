@@ -49,21 +49,21 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
 };
 
 // === POSIÇÃO DA CAMA (baseado no modelo do apartamento) ===
-// A cama está no quarto, aproximadamente na posição [3.0, 0.24, -5.0]
-const BED_POSITION: [number, number, number] = [3.0, 0.24, -5.0];
-const BED_ROTATION = 0; // Ajustado para a orientação correta
+const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
+const BED_ROTATION = 0; 
+const characterOffset = -0.45;
 
 // === POSIÇÃO DA CÂMERA DURANTE DESPERTAR ===
 const WAKEUP_CAMERA_POSITION: [number, number, number] = [
-  -0.1, // X - Posição horizontal ideal
-  1.8,  // Y - Altura dos olhos
-  -4.2, // Z - Distância frontal
+  2.5,   // X - Mais para a lateral
+  1.4,   // Y - Altura média
+  -3.5,  // Z - Mais próximo
 ];
 
 const WAKEUP_CAMERA_LOOKAT: [number, number, number] = [
-  3.0,  // X - Centro da cama onde está o personagem
-  1.0,  // Y - Altura do personagem sentado
-  -5.0, // Z - Profundidade da cama
+  3.0,   // X - Centro da cama
+  0.8,   // Y - Altura 
+  -5.0,  // Z - Profundidade
 ];
 
 /**

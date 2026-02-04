@@ -1,161 +1,240 @@
-/**
- * WakeUpSequence - Sequência de Despertar
- * 
- * Gerencia a transição da intro narrativa para o gameplay:
- * 1. Intro narrativa (IntroNarrativa)
- * 2. Personagem sentado na cama
- * 3. Animação de levantar (Sit To Stand)
- * 4. Libera controles para o jogador
- */
 "use client";
-
 
 import { useRef, useEffect, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF, useAnimations } from "@react-three/drei";
+import { useGLTF, useAnimations, Text } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 
 interface WakeUpSequenceProps {
-  /** Posição da cama no cenário */
   bedPosition?: [number, number, number];
-  /** Rotação do personagem (para ficar de frente correta) */
   bedRotation?: number;
-  /** Callback quando termina de levantar */
   onComplete: () => void;
-  /** Se deve começar a animação imediatamente */
   startAnimation?: boolean;
-  /** Posição da câmera durante a sequência */
   cameraPosition?: [number, number, number];
-  /** Para onde a câmera deve olhar */
   cameraLookAt?: [number, number, number];
 }
 
 export function WakeUpSequence({
-  bedPosition = [3.0, 0.24, -5.0], // Posição corrigida da cama
+  bedPosition = [3.0, 0.55, -5.0],
   bedRotation = 0,
   onComplete,
   startAnimation = false,
-  cameraPosition = [-0.1, 1.8, -4.2], // Posição ideal encontrada!
-  cameraLookAt = [3.0, 1.0, -5.0],    // Olhando para a cama
+  cameraPosition = [2.5, 1.4, -3.5],
+  cameraLookAt = [3.0, 0.8, -5.0],
 }: WakeUpSequenceProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const { camera } = useThree();
+  
+  // OFFSET crítico - ajuste isso!
+  const [characterOffset, setCharacterOffset] = useState(-0.45);
+  const [animationProgress, setAnimationProgress] = useState(0);
 
-  // Carrega o modelo de levantar
+  // Carrega o modelo COM animação
   const { scene, animations } = useGLTF("/models/Sit To Stand.glb");
 
-  // Clona a cena para evitar problemas de instância
+  // Clona e aplica a POSE SENTADA (frame 0)
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
+    
+    // Se houver animações, aplica o frame 0 (sentado)
+    if (animations && animations.length > 0) {
+      const mixer = new THREE.AnimationMixer(clonedScene);
+      const action = mixer.clipAction(animations[0]);
+      action.time = 0; // Frame 0 = pose sentada
+      action.play();
+      mixer.update(0); // Aplica a pose
+    }
     
     // Configura materiais
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
         if (node.material) {
-          if (Array.isArray(node.material)) {
-            node.material = node.material.map((mat: any) => {
-              const clonedMat = mat.clone();
-              clonedMat.transparent = false;
-              clonedMat.opacity = 1;
-              clonedMat.depthWrite = true;
-              clonedMat.depthTest = true;
-              return clonedMat;
-            });
-          } else {
-            node.material = node.material.clone();
-            node.material.transparent = false;
-            node.material.opacity = 1;
-            node.material.depthWrite = true;
-            node.material.depthTest = true;
+          const mat = Array.isArray(node.material) ? node.material[0] : node.material;
+          if (mat) {
+            const clonedMat = mat.clone();
+            clonedMat.transparent = false;
+            clonedMat.opacity = 1;
+            clonedMat.depthWrite = true;
+            clonedMat.depthTest = true;
+            if (Array.isArray(node.material)) {
+              node.material = [clonedMat];
+            } else {
+              node.material = clonedMat;
+            }
           }
         }
       }
     });
     
     return clonedScene;
-  }, [scene]);
+  }, [scene, animations]);
 
+  // Configura animação REAL
   const { actions, mixer } = useAnimations(animations, groupRef);
 
-  // Posiciona a câmera quando o componente monta
+  // Posiciona a câmera
   useEffect(() => {
-    console.log(`📷 Posicionando câmera em: [${cameraPosition.join(", ")}]`);
-    console.log(`🎯 Câmera olhando para: [${cameraLookAt.join(", ")}]`);
-    console.log(`🛏️ Cama posicionada em: [${bedPosition.join(", ")}]`);
-    
     camera.position.set(...cameraPosition);
     camera.lookAt(...cameraLookAt);
-  }, [camera, cameraPosition, cameraLookAt, bedPosition]);
+    
+    // DEBUG: Listener para ajustes
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'n' || e.key === 'N') {
+        setCharacterOffset(prev => prev - 0.05);
+        console.log(`🔻 OFFSET: ${characterOffset - 0.05}`);
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        setCharacterOffset(prev => prev + 0.05);
+        console.log(`🔺 OFFSET: ${characterOffset + 0.05}`);
+      }
+      if (e.key === '0') {
+        setCharacterOffset(-0.45);
+        console.log(`🔄 OFFSET resetado para: -0.45`);
+      }
+      // Mostra coordenadas
+      if (e.key === 'c' || e.key === 'C') {
+        console.log(`📍 Personagem: [${bedPosition[0]}, ${bedPosition[1] + characterOffset}, ${bedPosition[2]}]`);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [camera, cameraPosition, cameraLookAt, characterOffset, bedPosition]);
 
-  // Inicia a animação quando startAnimation = true
+  // Inicia animação REAL quando startAnimation = true
   useEffect(() => {
-    if (startAnimation && !hasStarted) {
+    if (startAnimation && !hasStarted && actions && Object.keys(actions).length > 0) {
       setHasStarted(true);
       
-      const action = Object.values(actions)[0];
+      const actionName = Object.keys(actions)[0];
+      const action = actions[actionName];
+      
       if (action) {
-        console.log("🛏️ Iniciando animação de levantar da cama");
+        console.log("🎬 Iniciando animação de levantar");
         
-        // Remove tracks de posição para não mover o personagem pelo cenário
-        const clip = action.getClip();
-        clip.tracks = clip.tracks.filter(
-          (track) => !track.name.toLowerCase().includes('position')
-        );
-        
-        // Configura a animação para tocar uma vez
+        // Configura animação
         action.reset();
         action.setLoop(THREE.LoopOnce, 1);
-        action.clampWhenFinished = true; // Mantém na pose final
+        action.clampWhenFinished = true;
+        action.time = 0; // Começa sentado
+        
+        // Remove tracks de movimento global (se houver)
+        const clip = action.getClip();
+        const hasRootMotion = clip.tracks.some(track => 
+          track.name.includes('.position') || track.name.includes('Translation')
+        );
+        
+        if (hasRootMotion) {
+          console.log("⚠️ Animação tem root motion - pode mover personagem");
+        }
+        
+        // Fade in e play
         action.fadeIn(0.3);
         action.play();
         
-        console.log(`⏱️ Duração da animação: ${action.getClip().duration.toFixed(2)}s`);
+        // Monitora progresso
+        const checkProgress = () => {
+          if (action && action.time < clip.duration - 0.1) {
+            setAnimationProgress(action.time / clip.duration);
+            requestAnimationFrame(checkProgress);
+          }
+        };
+        requestAnimationFrame(checkProgress);
       }
     }
   }, [startAnimation, hasStarted, actions]);
 
-  // Detecta quando a animação termina
-  useFrame(() => {
-    if (!mixer || !hasStarted || isComplete) return;
-
-    const action = Object.values(actions)[0];
-    if (action && action.time >= action.getClip().duration - 0.1) {
-      if (!isComplete) {
-        console.log("✅ Animação de levantar completa - liberando gameplay");
+  // Verifica fim da animação
+  useFrame((state, delta) => {
+    if (mixer && hasStarted && !isComplete) {
+      mixer.update(delta);
+      
+      const action = Object.values(actions)[0];
+      if (action && action.time >= action.getClip().duration - 0.05) {
         setIsComplete(true);
         onComplete();
       }
     }
   });
 
-  // Debug visual - mostra uma esfera vermelha na posição da cama (remover depois)
-  const showDebugMarker = false; // Mude para true para ver o marcador
-
   return (
     <>
-      {/* Personagem na cama */}
+      {/* Personagem NA CAMA - OFFSET DINÂMICO */}
       <group 
         ref={groupRef} 
-        position={bedPosition}
+        position={[
+          bedPosition[0], 
+          bedPosition[1] + characterOffset, 
+          bedPosition[2]
+        ]}
         rotation={[0, bedRotation, 0]}
-        scale={0.2} // Ajuste o scale conforme seu personagem
+        scale={0.2}
       >
         <primitive object={clone} />
       </group>
 
-      {/* Marcador de debug (opcional) */}
-      {showDebugMarker && (
-        <mesh position={bedPosition}>
-          <sphereGeometry args={[0.1, 16, 16]} />
-          <meshBasicMaterial color="red" />
-        </mesh>
-      )}
+      {/* DEBUG VISUAL - ESSENCIAL! */}
+      
+      {/* 1. SUPERFÍCIE DA CAMA (onde senta) */}
+      <mesh position={[3.0, 0.65, -5.0]}>
+        <boxGeometry args={[1.0, 0.02, 0.8]} />
+        <meshBasicMaterial color="red" transparent opacity={0.5} />
+      </mesh>
+      
+      {/* 2. CHÃO (referência) */}
+      <mesh position={[3.0, 0, -5.0]}>
+        <boxGeometry args={[2.0, 0.01, 2.0]} />
+        <meshBasicMaterial color="gray" transparent opacity={0.3} />
+      </mesh>
+      
+      {/* 3. MARCADOR DO PERSONAGEM */}
+      <mesh position={[bedPosition[0], bedPosition[1] + characterOffset, bedPosition[2]]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshBasicMaterial color="lime" />
+      </mesh>
+      
+      {/* 4. ASSENTO ESPERADO (0.5 acima do pivot) */}
+      <mesh position={[bedPosition[0], bedPosition[1] + characterOffset + 0.5, bedPosition[2]]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshBasicMaterial color="yellow" />
+      </mesh>
+      
+      {/* 5. TEXTO DE AJUDA */}
+      <Text
+        position={[bedPosition[0], bedPosition[1] + 0.9, bedPosition[2]]}
+        fontSize={0.07}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {`Sentado: ${(bedPosition[1] + characterOffset).toFixed(2)}`}
+      </Text>
+      
+      <Text
+        position={[bedPosition[0], bedPosition[1] + 1.0, bedPosition[2]]}
+        fontSize={0.07}
+        color="yellow"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {`Assento: ${(bedPosition[1] + characterOffset + 0.5).toFixed(2)}`}
+      </Text>
+      
+      <Text
+        position={[bedPosition[0] - 1.2, bedPosition[1] + 0.8, bedPosition[2]]}
+        fontSize={0.05}
+        color="cyan"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {`N/M: Ajustar altura\nC: Coordenadas\n0: Reset`}
+      </Text>
     </>
   );
 }
 
-// Preload do modelo
+// Preload
 useGLTF.preload("/models/Sit To Stand.glb");
