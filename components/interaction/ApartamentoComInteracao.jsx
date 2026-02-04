@@ -10,17 +10,17 @@ import { Model as Apartamento } from "../Apartamento";
 
 export function ApartamentoComInteracao(props) {
   // ===== ESTADOS =====
-  
+
   // Cafeteira: ligada ou desligada?
   const [cafeAtivo, setCafeAtivo] = useState(false);
-  
+
   // Planta: foi tocada?
   const [plantaTocada, setPlantaTocada] = useState(false);
-  
+
   // Livros: foram lidos?
   const [livrosLidos, setLivrosLidos] = useState(false);
   const [contadorLivros, setContadorLivros] = useState(0);
-  
+
   // Espelho: foi olhado?
   const [espelhoOlhado, setEspelhoOlhado] = useState(false);
   const [contadorEspelho, setContadorEspelho] = useState(0);
@@ -44,7 +44,7 @@ export function ApartamentoComInteracao(props) {
     setLivrosLidos(true);
     const novoContador = contadorLivros + 1;
     setContadorLivros(novoContador);
-    
+
     const mensagens = [
       "📚 Você pega um livro da estante...",
       "📖 'Memórias de um Solitário' - parece interessante.",
@@ -53,7 +53,7 @@ export function ApartamentoComInteracao(props) {
       "📚 Você sente uma conexão com as histórias.",
       "📖 Cada livro tem sua própria jornada.",
     ];
-    
+
     const indice = (novoContador - 1) % mensagens.length;
     console.log(mensagens[indice]);
   };
@@ -63,7 +63,7 @@ export function ApartamentoComInteracao(props) {
     setEspelhoOlhado(true);
     const novoContador = contadorEspelho + 1;
     setContadorEspelho(novoContador);
-    
+
     const mensagens = [
       "🪞 Você olha para o espelho...",
       "🪞 Seu reflexo olha de volta.",
@@ -74,7 +74,7 @@ export function ApartamentoComInteracao(props) {
       "🪞 Há esperança por trás desses olhos.",
       "🪞 Talvez amanhã seja diferente...",
     ];
-    
+
     const indice = (novoContador - 1) % mensagens.length;
     console.log(mensagens[indice]);
   };
@@ -95,7 +95,7 @@ export function ApartamentoComInteracao(props) {
         <mesh visible={false}>
           <sphereGeometry args={[0.3]} />
         </mesh>
-        
+
         {cafeAtivo && (
           <pointLight
             position={[0, 0, 0]}
@@ -110,14 +110,14 @@ export function ApartamentoComInteracao(props) {
       <InteractableObject
         id="planta"
         name="Planta"
-        position={[0.30, 0.83, -6.37]}
-        interactionDistance={2.0}
+        position={[0.3, 0.83, -6.37]}
+        interactionDistance={1.3}
         onInteract={aoTocarPlanta}
       >
         <mesh visible={false}>
           <sphereGeometry args={[0.4]} />
         </mesh>
-        
+
         {plantaTocada && (
           <pointLight
             position={[0, 0.5, 0]}
@@ -132,14 +132,14 @@ export function ApartamentoComInteracao(props) {
       <InteractableObject
         id="livros"
         name="Livros"
-        position={[0.90, 1.37, -5.96]}
-        interactionDistance={2.0}
+        position={[0.9, 1.37, -5.96]}
+        interactionDistance={0.00001}
         onInteract={aoTocarLivros}
       >
         <mesh visible={false}>
           <boxGeometry args={[0.5, 0.6, 0.3]} />
         </mesh>
-        
+
         {livrosLidos && (
           <pointLight
             position={[0, 0, 0]}
@@ -154,14 +154,14 @@ export function ApartamentoComInteracao(props) {
       <InteractableObject
         id="espelho"
         name="Espelho"
-        position={[4.09, 1.00, -0.48]}
+        position={[4.09, 1.0, -0.48]}
         interactionDistance={2.0}
         onInteract={aoOlharEspelho}
       >
         <mesh visible={false}>
           <boxGeometry args={[0.6, 0.8, 0.1]} />
         </mesh>
-        
+
         {espelhoOlhado && (
           <pointLight
             position={[0, 0, 0.3]}

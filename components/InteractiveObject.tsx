@@ -48,6 +48,8 @@ export function InteractiveObject({
   // Detecta proximidade a cada frame usando a POSIÇÃO DO JOGADOR
   useFrame(() => {
     // Obtém a posição atual do jogador do store global
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerPos = (window as any).__playerPosition || [0, 0, 0];
     const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
 
