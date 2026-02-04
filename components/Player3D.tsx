@@ -1,7 +1,10 @@
 /**
- * Player3D - Jogador em Terceira Pessoa (VERSÃO CORRIGIDA - v3)
+ * Player3D - VERSÃO COM OFFSETS SEPARADOS POR ANIMAÇÃO
  *
- * Correção de altura: Offset POSITIVO para levantar o personagem
+ * Solução: Cada animação tem seu próprio offset Y
+ * - Idle: offset menor (não flutua)
+ * - Walk: offset maior (não afunda)
+ * - WalkBack: offset maior (não afunda)
  */
 "use client";
 
@@ -16,15 +19,13 @@ import { useInteraction } from "./interaction/useInteraction";
 // ============================================================
 // CONFIGURAÇÕES
 // ============================================================
-// Posição ao lado da cama (no quarto, próximo aos livros)
-// Livros estão em [0.90, 1.37, -5.96]
-// Cama está próxima, spawn ao lado direito
-const SPAWN = { x: 1.5, y: 0.5, z: -4.5 };
+const SPAWN = { x: 1.5, y: 1.0, z: -4.5 };
 const RESPAWN_LIMIT_Y = -5;
 
-// CORRIGIDO: Offset POSITIVO para LEVANTAR o modelo
-// Se ainda estiver baixo, aumente este valor (ex: 0.0, 0.1, 0.2)
-const MODEL_Y_OFFSET = -0.1;
+// 🔥 OFFSETS SEPARADOS PARA CADA ANIMAÇÃO
+const IDLE_Y_OFFSET = -0.08;      // Parado - sem offset (ou ajuste se necessário)
+const WALK_Y_OFFSET = 0.3;      // Andando para frente - levantado
+const WALKBACK_Y_OFFSET = 0.3;  // Andando para trás - levantado
 
 type AnimState = "idle" | "walk" | "walkBack";
 
@@ -37,11 +38,9 @@ function IdleModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/character_final_.glb");
   
-  // Clone usando SkeletonUtils para garantir animações independentes
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
     
-    // Corrige materiais para evitar transparência
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
         if (node.material) {
@@ -73,7 +72,6 @@ function IdleModel({ scale }: { scale: number }) {
   useEffect(() => {
     const firstAction = Object.values(actions)[0];
     if (firstAction) {
-      // Remove root motion
       const clip = firstAction.getClip();
       clip.tracks = clip.tracks.filter(
         (track) => !track.name.toLowerCase().includes('position')
@@ -85,7 +83,7 @@ function IdleModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, IDLE_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -141,7 +139,7 @@ function WalkModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, WALK_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -197,7 +195,7 @@ function WalkBackModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, WALKBACK_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -331,10 +329,10 @@ export function Player3D({
       restitution={0}
       linearDamping={0.5}
     >
-      {/* Collider - ajuste se necessário */}
+      {/* Collider */}
       <CapsuleCollider args={[0.2, 0.3]} position={[0, 0.4, 0]} />
 
-      {/* Grupo de rotação */}
+      {/* Grupo de rotação - cada modelo tem seu próprio offset */}
       <group rotation={[0, rotation, 0]}>
         {animState === "idle" && <IdleModel scale={scale} />}
         {animState === "walk" && <WalkModel scale={scale} />}
