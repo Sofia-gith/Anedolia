@@ -1,10 +1,9 @@
 /**
- * Player3D - VERSÃO COM OFFSETS SEPARADOS POR ANIMAÇÃO
+ * Player3D - VERSÃO COM SCALES E OFFSETS SEPARADOS
  *
- * Solução: Cada animação tem seu próprio offset Y
- * - Idle: offset menor (não flutua)
- * - Walk: offset maior (não afunda)
- * - WalkBack: offset maior (não afunda)
+ * Solução: Cada animação tem seu próprio scale E offset
+ * - Se o personagem fica "baixinho" andando, aumentamos o scale da animação Walk
+ * - Mantemos offsets separados para ajuste fino de altura
  */
 "use client";
 
@@ -22,10 +21,16 @@ import { useInteraction } from "./interaction/useInteraction";
 const SPAWN = { x: 1.5, y: 1.0, z: -4.5 };
 const RESPAWN_LIMIT_Y = -5;
 
-// 🔥 OFFSETS SEPARADOS PARA CADA ANIMAÇÃO
-const IDLE_Y_OFFSET = -0.08;      // Parado - sem offset (ou ajuste se necessário)
-const WALK_Y_OFFSET = 0.3;      // Andando para frente - levantado
-const WALKBACK_Y_OFFSET = 0.3;  // Andando para trás - levantado
+//  OFFSETS Y SEPARADOS (controla posição vertical)
+const IDLE_Y_OFFSET = -0.1;      // Parado
+const WALK_Y_OFFSET = 0.6;      // Andando para frente
+const WALKBACK_Y_OFFSET = 0.6;  // Andando para trás
+
+//  SCALES SEPARADOS (controla tamanho/altura do modelo)
+// Se o personagem fica "baixinho" andando, AUMENTE o WALK_SCALE
+const IDLE_SCALE = 0.2;         // Parado - tamanho normal
+const WALK_SCALE = 0.32;        // Andando - 10% maior (ajuste conforme necessário)
+const WALKBACK_SCALE = 0.32;    // Andando pra trás - 10% maior
 
 type AnimState = "idle" | "walk" | "walkBack";
 
@@ -207,14 +212,14 @@ function WalkBackModel({ scale }: { scale: number }) {
 
 interface Player3DProps {
   modelPath?: string;
-  scale?: number;
+  scale?: number;  // Este scale base agora é ignorado, usamos os scales individuais
   speed?: number;
   runSpeed?: number;
   onPositionChange?: (position: THREE.Vector3) => void;
 }
 
 export function Player3D({
-  scale = 0.2,
+  scale = 0.2,  // Mantido para compatibilidade, mas não usado diretamente
   speed = 3,
   runSpeed = 6,
   onPositionChange,
@@ -332,11 +337,11 @@ export function Player3D({
       {/* Collider */}
       <CapsuleCollider args={[0.2, 0.3]} position={[0, 0.4, 0]} />
 
-      {/* Grupo de rotação - cada modelo tem seu próprio offset */}
+      {/* Grupo de rotação - cada modelo tem seu próprio scale E offset */}
       <group rotation={[0, rotation, 0]}>
-        {animState === "idle" && <IdleModel scale={scale} />}
-        {animState === "walk" && <WalkModel scale={scale} />}
-        {animState === "walkBack" && <WalkBackModel scale={scale} />}
+        {animState === "idle" && <IdleModel scale={IDLE_SCALE} />}
+        {animState === "walk" && <WalkModel scale={WALK_SCALE} />}
+        {animState === "walkBack" && <WalkBackModel scale={WALKBACK_SCALE} />}
       </group>
     </RigidBody>
   );
