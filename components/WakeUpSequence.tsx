@@ -9,6 +9,7 @@
  */
 "use client";
 
+
 import { useRef, useEffect, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
@@ -31,12 +32,12 @@ interface WakeUpSequenceProps {
 }
 
 export function WakeUpSequence({
-  bedPosition = [0, 0.5, 0],
+  bedPosition = [3.0, 0.24, -5.0], // Posição corrigida da cama
   bedRotation = 0,
   onComplete,
   startAnimation = false,
-  cameraPosition,
-  cameraLookAt,
+  cameraPosition = [-0.1, 1.8, -4.2], // Posição ideal encontrada!
+  cameraLookAt = [3.0, 1.0, -5.0],    // Olhando para a cama
 }: WakeUpSequenceProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hasStarted, setHasStarted] = useState(false);
@@ -81,11 +82,13 @@ export function WakeUpSequence({
 
   // Posiciona a câmera quando o componente monta
   useEffect(() => {
-    if (cameraPosition && cameraLookAt) {
-      camera.position.set(...cameraPosition);
-      camera.lookAt(...cameraLookAt);
-    }
-  }, [camera, cameraPosition, cameraLookAt]);
+    console.log(`📷 Posicionando câmera em: [${cameraPosition.join(", ")}]`);
+    console.log(`🎯 Câmera olhando para: [${cameraLookAt.join(", ")}]`);
+    console.log(`🛏️ Cama posicionada em: [${bedPosition.join(", ")}]`);
+    
+    camera.position.set(...cameraPosition);
+    camera.lookAt(...cameraLookAt);
+  }, [camera, cameraPosition, cameraLookAt, bedPosition]);
 
   // Inicia a animação quando startAnimation = true
   useEffect(() => {
@@ -108,6 +111,8 @@ export function WakeUpSequence({
         action.clampWhenFinished = true; // Mantém na pose final
         action.fadeIn(0.3);
         action.play();
+        
+        console.log(`⏱️ Duração da animação: ${action.getClip().duration.toFixed(2)}s`);
       }
     }
   }, [startAnimation, hasStarted, actions]);
@@ -119,22 +124,36 @@ export function WakeUpSequence({
     const action = Object.values(actions)[0];
     if (action && action.time >= action.getClip().duration - 0.1) {
       if (!isComplete) {
-        console.log("✅ Animação de levantar completa");
+        console.log("✅ Animação de levantar completa - liberando gameplay");
         setIsComplete(true);
         onComplete();
       }
     }
   });
 
+  // Debug visual - mostra uma esfera vermelha na posição da cama (remover depois)
+  const showDebugMarker = false; // Mude para true para ver o marcador
+
   return (
-    <group 
-      ref={groupRef} 
-      position={bedPosition}
-      rotation={[0, bedRotation, 0]}
-      scale={0.2} // Ajuste o scale conforme seu personagem
-    >
-      <primitive object={clone} />
-    </group>
+    <>
+      {/* Personagem na cama */}
+      <group 
+        ref={groupRef} 
+        position={bedPosition}
+        rotation={[0, bedRotation, 0]}
+        scale={0.2} // Ajuste o scale conforme seu personagem
+      >
+        <primitive object={clone} />
+      </group>
+
+      {/* Marcador de debug (opcional) */}
+      {showDebugMarker && (
+        <mesh position={bedPosition}>
+          <sphereGeometry args={[0.1, 16, 16]} />
+          <meshBasicMaterial color="red" />
+        </mesh>
+      )}
+    </>
   );
 }
 

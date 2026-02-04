@@ -10,6 +10,7 @@
 "use client";
 
 // === IMPORTS ===
+
 import { IntroNarrativa } from "@/components/IntroNarrativa";
 import { WakeUpSequence } from "@/components/WakeUpSequence";
 import { Player3D } from "@/components/Player3D";
@@ -22,7 +23,7 @@ import GenGemini from "@/components/GenGemini";
 
 import { Environment, KeyboardControls } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Suspense, useState, useEffect } from "react";
 import * as THREE from "three";
 
@@ -47,22 +48,22 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
   quadro: 0.3,
 };
 
-// === POSIÇÃO DA CAMA (ajuste conforme seu apartamento) ===
-const BED_POSITION: [number, number, number] = [1.5, 0.5, -4.5];
-const BED_ROTATION = Math.PI; // Personagem virado para frente ao levantar
+// === POSIÇÃO DA CAMA (baseado no modelo do apartamento) ===
+// A cama está no quarto, aproximadamente na posição [3.0, 0.24, -5.0]
+const BED_POSITION: [number, number, number] = [3.0, 0.24, -5.0];
+const BED_ROTATION = 0; // Ajustado para a orientação correta
 
 // === POSIÇÃO DA CÂMERA DURANTE DESPERTAR ===
-// Câmera posicionada no corredor/banheiro, olhando para o quarto
 const WAKEUP_CAMERA_POSITION: [number, number, number] = [
-  1.5,  // X - Alinhado com a cama (ajuste conforme necessário)
-  1.7,  // Y - Altura dos olhos
-  -1.5, // Z - Na entrada do quarto/corredor (mais positivo = mais longe)
+  -0.1, // X - Posição horizontal ideal
+  1.8,  // Y - Altura dos olhos
+  -4.2, // Z - Distância frontal
 ];
 
 const WAKEUP_CAMERA_LOOKAT: [number, number, number] = [
-  1.5,  // X - Centro da cama
-  1.2,  // Y - Altura do personagem
-  -4.5, // Z - Profundidade da cama
+  3.0,  // X - Centro da cama onde está o personagem
+  1.0,  // Y - Altura do personagem sentado
+  -5.0, // Z - Profundidade da cama
 ];
 
 /**
@@ -73,6 +74,65 @@ type GameState =
   | "waking_up"       // Personagem na cama, prestes a levantar
   | "standing_up"     // Animação de levantar
   | "playing";        // Gameplay normal
+
+/**
+ * CAMERA POSITION HELPER - COMPONENTE DE AJUSTE
+ * Use as teclas para ajustar a posição da câmera durante o wake up
+ */
+function CameraPositionHelper() {
+  const { camera } = useThree();
+  const [cameraPos, setCameraPos] = useState({
+    x: camera.position.x,
+    y: camera.position.y,
+    z: camera.position.z,
+  });
+
+  useEffect(() => {
+    const step = 0.1; // Passo menor para ajuste mais fino
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Previne conflito com o prompt de "Space para levantar"
+      if (e.code === "Space") return;
+      
+      const newPos = { ...cameraPos };
+
+      switch (e.key) {
+        case "ArrowLeft": newPos.x -= step; break;
+        case "ArrowRight": newPos.x += step; break;
+        case "ArrowUp": newPos.z -= step; break;
+        case "ArrowDown": newPos.z += step; break;
+        case "q": case "Q": newPos.y += step; break;
+        case "e": case "E": newPos.y -= step; break;
+        
+        // Presets úteis para encontrar o ângulo ideal
+        case "1": // Vista mais à esquerda (padrão corrigido)
+          newPos.x = 0.5; newPos.y = 1.8; newPos.z = -2.5;
+          break;
+        case "2": // Vista mais central
+          newPos.x = 1.5; newPos.y = 1.7; newPos.z = -2.5;
+          break;
+        case "3": // Vista lateral direita
+          newPos.x = 5.0; newPos.y = 1.6; newPos.z = -5.0;
+          break;
+        case "4": // Vista de cima (aérea)
+          newPos.x = 3.0; newPos.y = 4.0; newPos.z = -5.0;
+          break;
+        default: return;
+      }
+
+      setCameraPos(newPos);
+      camera.position.set(newPos.x, newPos.y, newPos.z);
+      camera.lookAt(BED_POSITION[0], BED_POSITION[1] + 0.7, BED_POSITION[2]);
+      
+      console.log(`📷 Câmera: [${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)}, ${newPos.z.toFixed(1)}]`);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [camera, cameraPos]);
+
+  return null;
+}
 
 /**
  * Componente interno da cena
@@ -97,6 +157,11 @@ function Scene({
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Environment preset="city" />
+
+        {/* === HELPER DE POSIÇÃO DA CÂMERA (REMOVER DEPOIS) === */}
+        {(gameState === "waking_up" || gameState === "standing_up") && (
+          <CameraPositionHelper />
+        )}
 
         {/* === SEQUÊNCIA DE DESPERTAR === */}
         {(gameState === "waking_up" || gameState === "standing_up") && (
@@ -170,13 +235,16 @@ export default function Teste() {
       setShowWakeUpPrompt(true);
     }, 1000);
 
-    // Inicia automaticamente após 3 segundos se não apertar espaço
+    // Inicia automaticamente após 4 segundos se não apertar espaço
     setTimeout(() => {
-      if (gameState === "waking_up") {
-        setGameState("standing_up");
-        setShowWakeUpPrompt(false);
-      }
-    }, 3000);
+      setGameState((current) => {
+        if (current === "waking_up") {
+          setShowWakeUpPrompt(false);
+          return "standing_up";
+        }
+        return current;
+      });
+    }, 5000);
   };
 
   const handleWakeUpComplete = () => {
@@ -266,6 +334,42 @@ export default function Teste() {
                 />
               </Suspense>
             </Canvas>
+
+            {/* === INSTRUÇÕES DE AJUSTE (TEMPORÁRIO) === */}
+            {(gameState === "waking_up" || gameState === "standing_up") && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "20px",
+                  left: "20px",
+                  color: "white",
+                  fontFamily: "monospace",
+                  fontSize: "12px",
+                  background: "rgba(0,0,0,0.8)",
+                  padding: "15px",
+                  borderRadius: "5px",
+                  maxWidth: "350px",
+                }}
+              >
+                <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#4CAF50" }}>
+                  🔧 MODO AJUSTE DE CÂMERA
+                </div>
+                <div style={{ marginBottom: "5px" }}>
+                  <strong>Setas:</strong> Move câmera (horizontal)
+                </div>
+                <div style={{ marginBottom: "5px" }}>
+                  <strong>Q/E:</strong> Sobe/Desce câmera
+                </div>
+                <div style={{ marginBottom: "5px" }}>
+                  <strong>1-4:</strong> Posições preset
+                </div>
+                <div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.7, borderTop: "1px solid #444", paddingTop: "8px" }}>
+                  📍 Veja coordenadas no console (F12)<br/>
+                  🎯 Quando encontrar a posição ideal, copie os valores<br/>
+                  ❌ Remova o CameraPositionHelper depois
+                </div>
+              </div>
+            )}
 
             {/* === PROMPT PARA LEVANTAR === */}
             {showWakeUpPrompt && (
