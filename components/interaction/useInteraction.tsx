@@ -45,8 +45,14 @@ interface InteractionState {
   // Objeto mais próximo que pode ser interagido
   nearestObject: InteractableObject | null;
 
+  // Posição atual do jogador
+  playerPosition: [number, number, number];
+
   // Estado do zoom
   zoomState: ZoomState;
+
+  // Atualiza a posição do jogador
+  setPlayerPosition: (position: [number, number, number]) => void;
 
   // Registra um objeto como disponível para interação
   setNearestObject: (obj: InteractableObject | null) => void;
@@ -59,7 +65,7 @@ interface InteractionState {
     targetPosition: [number, number, number],
     targetLookAt: [number, number, number],
     playerPosition: [number, number, number],
-    duration?: number
+    duration?: number,
   ) => void;
 
   // Finaliza o zoom e volta à posição original
@@ -73,6 +79,8 @@ interface InteractionState {
 export const useInteraction = create<InteractionState>((set, get) => ({
   nearestObject: null,
 
+  playerPosition: [0, 0, 0],
+
   zoomState: {
     isZooming: false,
     targetPosition: null,
@@ -80,6 +88,8 @@ export const useInteraction = create<InteractionState>((set, get) => ({
     playerPosition: null,
     duration: 1000,
   },
+
+  setPlayerPosition: (position) => set({ playerPosition: position }),
 
   setNearestObject: (obj) => set({ nearestObject: obj }),
 
@@ -91,7 +101,7 @@ export const useInteraction = create<InteractionState>((set, get) => ({
 
       // === CÁLCULO DA POSIÇÃO FRONTAL AO OBJETO ===
       const objectPos = nearestObject.position;
-      
+
       // Calcula o vetor da posição do jogador para o objeto
       const directionToObject = [
         objectPos[0] - playerPosition[0],
@@ -102,8 +112,8 @@ export const useInteraction = create<InteractionState>((set, get) => ({
       // Normaliza o vetor (comprimento = 1)
       const length = Math.sqrt(
         directionToObject[0] ** 2 +
-        directionToObject[1] ** 2 +
-        directionToObject[2] ** 2
+          directionToObject[1] ** 2 +
+          directionToObject[2] ** 2,
       );
 
       const normalizedDirection = [
@@ -118,9 +128,9 @@ export const useInteraction = create<InteractionState>((set, get) => ({
       // Posição da câmera: na direção oposta de onde o jogador veio
       // Isso garante que a câmera fique DE FRENTE para o objeto
       const cameraOffset: [number, number, number] = [
-        objectPos[0] - normalizedDirection[0] * zoomDistance,  // Oposto X
-        objectPos[1] + 0.2,                                     // Altura ajustada
-        objectPos[2] - normalizedDirection[2] * zoomDistance,  // Oposto Z
+        objectPos[0] - normalizedDirection[0] * zoomDistance, // Oposto X
+        objectPos[1] + 0.2, // Altura ajustada
+        objectPos[2] - normalizedDirection[2] * zoomDistance, // Oposto Z
       ];
 
       // O targetLookAt é exatamente a posição do objeto
@@ -134,7 +144,12 @@ export const useInteraction = create<InteractionState>((set, get) => ({
     }
   },
 
-  startZoom: (targetPosition, targetLookAt, playerPosition, duration = 1000) => {
+  startZoom: (
+    targetPosition,
+    targetLookAt,
+    playerPosition,
+    duration = 1000,
+  ) => {
     set({
       zoomState: {
         isZooming: true,
