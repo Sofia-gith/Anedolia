@@ -1,7 +1,9 @@
 /**
- * Player3D - Jogador em Terceira Pessoa (VERSÃO CORRIGIDA - v3)
+ * Player3D - VERSÃO COM SCALES E OFFSETS SEPARADOS
  *
- * Correção de altura: Offset POSITIVO para levantar o personagem
+ * Solução: Cada animação tem seu próprio scale E offset
+ * - Se o personagem fica "baixinho" andando, aumentamos o scale da animação Walk
+ * - Mantemos offsets separados para ajuste fino de altura
  */
 "use client";
 
@@ -20,12 +22,19 @@ import { useInteraction } from "./interaction/useInteraction";
 // ============================================================
 // CONFIGURAÇÕES
 // ============================================================
-const SPAWN = { x: 0, y: 1, z: 0 };
+const SPAWN = { x: 1.5, y: 1.0, z: -4.5 };
 const RESPAWN_LIMIT_Y = -5;
 
-// CORRIGIDO: Offset POSITIVO para LEVANTAR o modelo
-// Se ainda estiver baixo, aumente este valor (ex: 0.0, 0.1, 0.2)
-const MODEL_Y_OFFSET = -0.1;
+//  OFFSETS Y SEPARADOS (controla posição vertical)
+const IDLE_Y_OFFSET = -0.1;      // Parado
+const WALK_Y_OFFSET = 0.6;      // Andando para frente
+const WALKBACK_Y_OFFSET = 0.6;  // Andando para trás
+
+//  SCALES SEPARADOS (controla tamanho/altura do modelo)
+// Se o personagem fica "baixinho" andando, AUMENTE o WALK_SCALE
+const IDLE_SCALE = 0.2;         // Parado - tamanho normal
+const WALK_SCALE = 0.32;        // Andando - 10% maior (ajuste conforme necessário)
+const WALKBACK_SCALE = 0.32;    // Andando pra trás - 10% maior
 
 type AnimState = "idle" | "walk" | "walkBack";
 
@@ -41,8 +50,8 @@ function IdleModel({ scale }: { scale: number }) {
   // Clone usando SkeletonUtils para garantir animações independentes
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
-
     // Corrige materiais para evitar transparência
+
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
         if (node.material) {
@@ -74,7 +83,6 @@ function IdleModel({ scale }: { scale: number }) {
   useEffect(() => {
     const firstAction = Object.values(actions)[0];
     if (firstAction) {
-      // Remove root motion
       const clip = firstAction.getClip();
       clip.tracks = clip.tracks.filter(
         (track) => !track.name.toLowerCase().includes("position"),
@@ -88,7 +96,7 @@ function IdleModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, IDLE_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -146,7 +154,7 @@ function WalkModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, WALK_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -204,7 +212,7 @@ function WalkBackModel({ scale }: { scale: number }) {
   }, [actions]);
 
   return (
-    <group ref={ref} scale={scale} position={[0, MODEL_Y_OFFSET, 0]}>
+    <group ref={ref} scale={scale} position={[0, WALKBACK_Y_OFFSET, 0]}>
       <primitive object={clone} />
     </group>
   );
@@ -216,23 +224,30 @@ function WalkBackModel({ scale }: { scale: number }) {
 
 interface Player3DProps {
   modelPath?: string;
-  scale?: number;
+  scale?: number;  // Este scale base agora é ignorado, usamos os scales individuais
   speed?: number;
   runSpeed?: number;
+  initialPosition?: [number, number, number];
+  initialRotation?: number;
   onPositionChange?: (position: THREE.Vector3) => void;
 }
 
 export function Player3D({
-  scale = 0.2,
+  scale = 0.2,  // Mantido para compatibilidade, mas não usado diretamente
   speed = 3,
   runSpeed = 6,
+  initialPosition,
+  initialRotation = 0,
   onPositionChange,
 }: Player3DProps) {
   const rb = useRef<RapierRigidBody>(null);
-  const rotationRef = useRef(0);
+  const rotationRef = useRef(initialRotation);
+
+  // Usa initialPosition se fornecida, caso contrário usa SPAWN padrão
+  const spawnPosition = initialPosition || [SPAWN.x, SPAWN.y, SPAWN.z] as [number, number, number];
 
   const [animState, setAnimState] = useState<AnimState>("idle");
-  const [rotation, setRotation] = useState(0);
+  const [rotation, setRotation] = useState(initialRotation);
   const [, getKeys] = useKeyboardControls();
 
   const interact = useInteraction((state) => state.interact);
@@ -256,7 +271,7 @@ export function Player3D({
 
     // === RESPAWN ===
     if (translation.y < RESPAWN_LIMIT_Y) {
-      rb.current.setTranslation(SPAWN, true);
+      rb.current.setTranslation({ x: spawnPosition[0], y: spawnPosition[1], z: spawnPosition[2] }, true);
       rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       rb.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       return;
@@ -352,21 +367,21 @@ export function Player3D({
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[SPAWN.x, SPAWN.y, SPAWN.z]}
+      position={spawnPosition}
       type="dynamic"
       lockRotations={true}
       friction={0.7}
       restitution={0}
       linearDamping={0.5}
     >
-      {/* Collider - ajuste se necessário */}
+      {/* Collider */}
       <CapsuleCollider args={[0.2, 0.3]} position={[0, 0.4, 0]} />
 
-      {/* Grupo de rotação */}
+      {/* Grupo de rotação - cada modelo tem seu próprio scale E offset */}
       <group rotation={[0, rotation, 0]}>
-        {animState === "idle" && <IdleModel scale={scale} />}
-        {animState === "walk" && <WalkModel scale={scale} />}
-        {animState === "walkBack" && <WalkBackModel scale={scale} />}
+        {animState === "idle" && <IdleModel scale={IDLE_SCALE} />}
+        {animState === "walk" && <WalkModel scale={WALK_SCALE} />}
+        {animState === "walkBack" && <WalkBackModel scale={WALKBACK_SCALE} />}
       </group>
     </RigidBody>
   );
