@@ -2,7 +2,7 @@
  * IntroNarrativa - Sequência de Introdução do Jogo
  * 
  * Mostra uma narrativa visual com imagens e textos antes do gameplay
- * Transição: Imagem 1 (felicidade) -> Imagem 2 (monotonia) -> Gameplay
+ * Transição: Imagem 1 (felicidade) -> Imagem 2 (monotonia) -> Imagem 3 (rotina) -> Imagem 4 (mudança) -> Gameplay
  */
 "use client";
 
@@ -36,9 +36,17 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
       texto: "Mas com o passar dos anos, cada dia começou a parecer... igual ao anterior.",
       duracao: 4000,
     },
-    // Você pode adicionar mais slides aqui conforme criar mais imagens
+    {
+      imagePath: "/intro/parte3.png",
+      texto: "A rotina tomou conta de tudo. Acordar, trabalhar, dormir... Repetir.",
+      duracao: 4000,
+    },
+    {
+      imagePath: "/intro/parte4.png",
+      texto: "O  aconteceu.?",
+      duracao: 4000,
+    },
   ];
-
   // Controla o fade in inicial
   useEffect(() => {
     const timer = setTimeout(() => {
