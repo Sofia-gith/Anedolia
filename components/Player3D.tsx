@@ -8,7 +8,11 @@
 import { useRef, useEffect, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls, useGLTF, useAnimations } from "@react-three/drei";
-import { RigidBody, CapsuleCollider, RapierRigidBody } from "@react-three/rapier";
+import {
+  RigidBody,
+  CapsuleCollider,
+  RapierRigidBody,
+} from "@react-three/rapier";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
 import { useInteraction } from "./interaction/useInteraction";
@@ -33,11 +37,11 @@ type AnimState = "idle" | "walk" | "walkBack";
 function IdleModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/character_final_.glb");
-  
+
   // Clone usando SkeletonUtils para garantir animações independentes
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
-    
+
     // Corrige materiais para evitar transparência
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
@@ -61,7 +65,7 @@ function IdleModel({ scale }: { scale: number }) {
         }
       }
     });
-    
+
     return clonedScene;
   }, [scene]);
 
@@ -73,11 +77,13 @@ function IdleModel({ scale }: { scale: number }) {
       // Remove root motion
       const clip = firstAction.getClip();
       clip.tracks = clip.tracks.filter(
-        (track) => !track.name.toLowerCase().includes('position')
+        (track) => !track.name.toLowerCase().includes("position"),
       );
-      
+
       firstAction.reset().fadeIn(0.2).play();
-      return () => { firstAction.fadeOut(0.2); };
+      return () => {
+        firstAction.fadeOut(0.2);
+      };
     }
   }, [actions]);
 
@@ -92,10 +98,10 @@ function IdleModel({ scale }: { scale: number }) {
 function WalkModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/Walking.glb");
-  
+
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
-    
+
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
         if (node.material) {
@@ -118,7 +124,7 @@ function WalkModel({ scale }: { scale: number }) {
         }
       }
     });
-    
+
     return clonedScene;
   }, [scene]);
 
@@ -129,11 +135,13 @@ function WalkModel({ scale }: { scale: number }) {
     if (firstAction) {
       const clip = firstAction.getClip();
       clip.tracks = clip.tracks.filter(
-        (track) => !track.name.toLowerCase().includes('position')
+        (track) => !track.name.toLowerCase().includes("position"),
       );
-      
+
       firstAction.reset().fadeIn(0.2).play();
-      return () => { firstAction.fadeOut(0.2); };
+      return () => {
+        firstAction.fadeOut(0.2);
+      };
     }
   }, [actions]);
 
@@ -148,10 +156,10 @@ function WalkModel({ scale }: { scale: number }) {
 function WalkBackModel({ scale }: { scale: number }) {
   const ref = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF("/models/Walking_Backwards.glb");
-  
+
   const clone = useMemo(() => {
     const clonedScene = SkeletonUtils.clone(scene);
-    
+
     clonedScene.traverse((node: any) => {
       if (node.isMesh || node.isSkinnedMesh) {
         if (node.material) {
@@ -174,7 +182,7 @@ function WalkBackModel({ scale }: { scale: number }) {
         }
       }
     });
-    
+
     return clonedScene;
   }, [scene]);
 
@@ -185,11 +193,13 @@ function WalkBackModel({ scale }: { scale: number }) {
     if (firstAction) {
       const clip = firstAction.getClip();
       clip.tracks = clip.tracks.filter(
-        (track) => !track.name.toLowerCase().includes('position')
+        (track) => !track.name.toLowerCase().includes("position"),
       );
-      
+
       firstAction.reset().fadeIn(0.2).play();
-      return () => { firstAction.fadeOut(0.2); };
+      return () => {
+        firstAction.fadeOut(0.2);
+      };
     }
   }, [actions]);
 
@@ -234,7 +244,14 @@ export function Player3D({
   useFrame((state) => {
     if (!rb.current) return;
 
-    const { forward, backward, left, right, interact: interactKey, jump } = getKeys();
+    const {
+      forward,
+      backward,
+      left,
+      right,
+      interact: interactKey,
+      jump,
+    } = getKeys();
     const translation = rb.current.translation();
 
     // === RESPAWN ===
@@ -281,13 +298,16 @@ export function Player3D({
 
       const currentSpeed = jump ? runSpeed : speed;
 
-      if (forward) velocity.add(cameraDirection.clone().multiplyScalar(currentSpeed));
+      if (forward)
+        velocity.add(cameraDirection.clone().multiplyScalar(currentSpeed));
       if (backward) {
         velocity.add(cameraDirection.clone().multiplyScalar(-currentSpeed));
         if (!forward) goingBackward = true;
       }
-      if (left) velocity.add(rightDirection.clone().multiplyScalar(-currentSpeed));
-      if (right) velocity.add(rightDirection.clone().multiplyScalar(currentSpeed));
+      if (left)
+        velocity.add(rightDirection.clone().multiplyScalar(-currentSpeed));
+      if (right)
+        velocity.add(rightDirection.clone().multiplyScalar(currentSpeed));
 
       // === ROTAÇÃO ===
       if (velocity.length() > 0 && !goingBackward) {
@@ -310,10 +330,21 @@ export function Player3D({
     );
 
     // === NOTIFICA POSIÇÃO ===
-    const position = new THREE.Vector3(translation.x, translation.y, translation.z);
+    const position = new THREE.Vector3(
+      translation.x,
+      translation.y,
+      translation.z,
+    );
     if (onPositionChange) {
       onPositionChange(position);
     }
+
+    // Armazena posição globalmente para detecção de proximidade
+    (window as any).__playerPosition = [
+      translation.x,
+      translation.y,
+      translation.z,
+    ];
   });
 
   return (

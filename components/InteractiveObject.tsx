@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Vector3 } from "three";
+import { Vector3, Raycaster } from "three";
 import { useGeminiText } from "./GenGemini";
 
 /**
@@ -28,7 +28,6 @@ export function InteractiveObject({
 }) {
   const texto = useGeminiText(objeto);
   const objectPosition = useRef(new Vector3(...position));
-  const { camera } = useThree();
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
   const interactCooldown = 500;
@@ -46,9 +45,15 @@ export function InteractiveObject({
     console.log(`Interagiu com ${objeto}:`, texto);
   };
 
-  // Detecta proximidade a cada frame
+  // Detecta proximidade a cada frame usando a POSIÇÃO DO JOGADOR
   useFrame(() => {
-    const distance = camera.position.distanceTo(objectPosition.current);
+    // Obtém a posição atual do jogador do store global
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const playerPos = (window as any).__playerPosition || [0, 0, 0];
+    const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
+
+    const distance = playerVector.distanceTo(objectPosition.current);
     const nearby = distance <= interactionDistance;
 
     if (nearby !== isNearby) {
