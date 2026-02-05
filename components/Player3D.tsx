@@ -215,6 +215,8 @@ interface Player3DProps {
   scale?: number;  // Este scale base agora é ignorado, usamos os scales individuais
   speed?: number;
   runSpeed?: number;
+  initialPosition?: [number, number, number];
+  initialRotation?: number;
   onPositionChange?: (position: THREE.Vector3) => void;
 }
 
@@ -222,13 +224,18 @@ export function Player3D({
   scale = 0.2,  // Mantido para compatibilidade, mas não usado diretamente
   speed = 3,
   runSpeed = 6,
+  initialPosition,
+  initialRotation = 0,
   onPositionChange,
 }: Player3DProps) {
   const rb = useRef<RapierRigidBody>(null);
-  const rotationRef = useRef(0);
+  const rotationRef = useRef(initialRotation);
+
+  // Usa initialPosition se fornecida, caso contrário usa SPAWN padrão
+  const spawnPosition = initialPosition || [SPAWN.x, SPAWN.y, SPAWN.z] as [number, number, number];
 
   const [animState, setAnimState] = useState<AnimState>("idle");
-  const [rotation, setRotation] = useState(0);
+  const [rotation, setRotation] = useState(initialRotation);
   const [, getKeys] = useKeyboardControls();
 
   const interact = useInteraction((state) => state.interact);
@@ -245,7 +252,7 @@ export function Player3D({
 
     // === RESPAWN ===
     if (translation.y < RESPAWN_LIMIT_Y) {
-      rb.current.setTranslation(SPAWN, true);
+      rb.current.setTranslation({ x: spawnPosition[0], y: spawnPosition[1], z: spawnPosition[2] }, true);
       rb.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       rb.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       return;
@@ -327,7 +334,7 @@ export function Player3D({
       ref={rb}
       colliders={false}
       enabledRotations={[false, false, false]}
-      position={[SPAWN.x, SPAWN.y, SPAWN.z]}
+      position={spawnPosition}
       type="dynamic"
       lockRotations={true}
       friction={0.7}

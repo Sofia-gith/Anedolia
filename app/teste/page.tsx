@@ -53,6 +53,20 @@ const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
 const BED_ROTATION = 0; 
 const characterOffset = -0.45;
 
+// === POSIÇÃO INICIAL DO JOGADOR (na frente da cama após levantar) ===
+const PLAYER_SPAWN_POSITION: [number, number, number] = [
+  BED_POSITION[0],           // Mesmo X da cama
+  BED_POSITION[1],           // Mesma altura
+  BED_POSITION[2] + 0.8,     // Um pouco à frente da cama
+];
+
+// === ROTAÇÃO INICIAL DO JOGADOR (virado para frente) ===
+// 0 = virado para Z+ (trás)
+// Math.PI / 2 = virado para a esquerda
+// Math.PI = virado para Z- (frente)
+// Math.PI * 1.5 = virado para a direita
+const PLAYER_INITIAL_ROTATION = Math.PI * 1.5; // Ajuste conforme a orientação do modelo
+
 // === POSIÇÃO DA CÂMERA DURANTE DESPERTAR ===
 const WAKEUP_CAMERA_POSITION: [number, number, number] = [
   2.5,   // X - Mais para a lateral
@@ -147,7 +161,7 @@ function Scene({
   onWakeUpComplete: () => void;
 }) {
   const [playerPosition, setPlayerPosition] = useState(
-    new THREE.Vector3(...BED_POSITION),
+    new THREE.Vector3(...PLAYER_SPAWN_POSITION),
   );
 
   return (
@@ -182,6 +196,8 @@ function Scene({
             scale={0.2}
             speed={3}
             runSpeed={6}
+            initialPosition={PLAYER_SPAWN_POSITION}
+            initialRotation={PLAYER_INITIAL_ROTATION}
             onPositionChange={setPlayerPosition}
           />
         )}
