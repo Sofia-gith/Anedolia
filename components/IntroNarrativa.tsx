@@ -28,22 +28,22 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
   const slides: Slide[] = [
     {
       imagePath: "/intro/parte1.png",
-      texto: "Antes eu era tão feliz... As coisas eram mais simples.",
+      texto: "nessa época tudo é mais simples mais fácil",
       duracao: 4000, // 4 segundos
     },
     {
       imagePath: "/intro/parte2.png", 
-      texto: "Mas com o passar dos anos, cada dia começou a parecer... igual ao anterior.",
+      texto: "o que aconteceu?",
       duracao: 4000,
     },
     {
       imagePath: "/intro/parte3.png",
-      texto: "A rotina tomou conta de tudo. Acordar, trabalhar, dormir... Repetir.",
+      texto: "Todos os dias são iguais",
       duracao: 4000,
     },
     {
       imagePath: "/intro/parte4.png",
-      texto: "O  aconteceu.?",
+      texto: "...",
       duracao: 4000,
     },
   ];
