@@ -1,8 +1,13 @@
 /**
- * IntroNarrativa - Sequência de Introdução do Jogo
+ * IntroNarrativa - Game Introduction Sequence (ENGLISH VERSION)
  * 
- * Mostra uma narrativa visual com imagens e textos antes do gameplay
- * Transição: Imagem 1 (felicidade) -> Imagem 2 (monotonia) -> Imagem 3 (rotina) -> Imagem 4 (mudança) -> Gameplay
+ * Shows a visual narrative with images and texts before gameplay
+ * Transition: Image 1 (happiness) -> Image 2 (monotony) -> Image 3 (routine) -> Image 4 (change) -> Gameplay
+ * 
+ * CHANGES:
+ * - Removed automatic advance (no more 3-second timer)
+ * - Player MUST press SPACE to advance
+ * - All text translated to English
  */
 "use client";
 
@@ -12,11 +17,11 @@ import Image from "next/image";
 interface Slide {
   imagePath: string;
   texto: string;
-  duracao?: number; // duração em ms antes de passar automaticamente (opcional)
+  // duracao removed - no automatic advance
 }
 
 interface IntroNarrativaProps {
-  onComplete: () => void; // Callback quando a intro terminar
+  onComplete: () => void; // Callback when intro finishes
 }
 
 export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
@@ -24,30 +29,27 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
   const [fadeState, setFadeState] = useState<'in' | 'visible' | 'out'>('in');
   const [podeAvancar, setPodeAvancar] = useState(false);
 
-  // Define os slides da narrativa
+  // Define narrative slides (IN ENGLISH)
   const slides: Slide[] = [
     {
       imagePath: "/intro/parte1.png",
-      texto: "nessa época tudo é mais simples mais fácil",
-      duracao: 4000, // 4 segundos
+      texto: "Back then, everything was simpler, easier",
     },
     {
       imagePath: "/intro/parte2.png", 
-      texto: "o que aconteceu?",
-      duracao: 4000,
+      texto: "What happened?",
     },
     {
       imagePath: "/intro/parte3.png",
-      texto: "Todos os dias são iguais",
-      duracao: 4000,
+      texto: "Every day is the same",
     },
     {
       imagePath: "/intro/parte4.png",
       texto: "...",
-      duracao: 4000,
     },
   ];
-  // Controla o fade in inicial
+
+  // Controls initial fade in
   useEffect(() => {
     const timer = setTimeout(() => {
       setFadeState('visible');
@@ -56,18 +58,10 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
     return () => clearTimeout(timer);
   }, [slideAtual]);
 
-  // Avança automaticamente após a duração (se definida)
-  useEffect(() => {
-    const slide = slides[slideAtual];
-    if (slide.duracao && podeAvancar) {
-      const timer = setTimeout(() => {
-        avancarSlide();
-      }, slide.duracao);
-      return () => clearTimeout(timer);
-    }
-  }, [slideAtual, podeAvancar]);
+  // ❌ REMOVED: Automatic advance after duration
+  // Now player MUST press SPACE to continue
 
-  // Listener para tecla ESPAÇO
+  // Listener for SPACE key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && podeAvancar) {
@@ -88,21 +82,14 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
 
     setTimeout(() => {
       if (slideAtual < slides.length - 1) {
-        // Próximo slide
+        // Next slide
         setSlideAtual(slideAtual + 1);
         setFadeState('in');
       } else {
-        // Terminou a intro
+        // Intro finished
         onComplete();
       }
-    }, 800); // Duração do fade out
-  };
-
-  const pularIntro = () => {
-    setFadeState('out');
-    setTimeout(() => {
-      onComplete();
-    }, 500);
+    }, 800); // Fade out duration
   };
 
   const slide = slides[slideAtual];
@@ -125,7 +112,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         transition: 'opacity 0.8s ease-in-out',
       }}
     >
-      {/* Imagem */}
+      {/* Image */}
       <div
         style={{
           position: 'relative',
@@ -140,7 +127,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
       >
         <Image
           src={slide.imagePath}
-          alt="Narrativa"
+          alt="Narrative"
           fill
           style={{
             objectFit: 'contain',
@@ -150,7 +137,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         />
       </div>
 
-      {/* Texto narrativo */}
+      {/* Narrative text */}
       <div
         style={{
           maxWidth: '800px',
@@ -175,7 +162,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         </p>
       </div>
 
-      {/* Indicador de progresso */}
+      {/* Progress indicator */}
       <div
         style={{
           position: 'absolute',
@@ -198,7 +185,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         ))}
       </div>
 
-      {/* Seta para avançar (lado direito) */}
+      {/* Arrow to advance (right side) */}
       {podeAvancar && (
         <div
           onClick={avancarSlide}
@@ -227,7 +214,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         </div>
       )}
 
-      {/* Animação de pulso para a seta */}
+      {/* Pulse animation for arrow */}
       <style jsx>{`
         @keyframes pulse {
           0%, 100% {
@@ -239,18 +226,22 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
         }
       `}</style>
 
-      {/* Hint de tecla (discreto no canto) */}
+      {/* Key hint (discrete in corner) */}
       <div
         style={{
           position: 'absolute',
           bottom: '20px',
           right: '20px',
-          color: 'rgba(255, 255, 255, 0.3)',
-          fontSize: '11px',
+          color: 'rgba(255, 255, 255, 0.5)',
+          fontSize: '14px',
           fontFamily: 'monospace',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          padding: '8px 16px',
+          borderRadius: '4px',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
         }}
       >
-        ESPAÇO para avançar
+        Press SPACE to continue
       </div>
     </div>
   );

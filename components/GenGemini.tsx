@@ -8,21 +8,21 @@ import {
 } from "react";
 
 const FALLBACKS: Record<string, string> = {
-  café: "O aroma do café preenche o ar, trazendo à tona lembranças de manhãs aquecidas por esperança. Um tom sutil de cor dança na xícara, como se a vida sussurrasse: ainda há calor aqui.",
+  café: "The aroma of coffee fills the air, bringing back memories of mornings warmed by hope. A subtle tone of color dances in the cup, as if life whispers: there's still warmth here.",
   planta:
-    "A planta na janela resiste, mesmo sem sol. Suas folhas buscam luz, e ao tocá-las, sinto um verde tímido pulsar, como se a esperança brotasse devagar dentro de mim.",
+    "The plant by the window persists, even without sun. Its leaves seek light, and when I touch them, I feel a timid green pulse, as if hope slowly sprouts within me.",
   livros:
-    "As páginas amareladas sussurram segredos que o tempo tentou apagar. Entre linhas e versos, minha própria história recupera o matiz do que vivi.",
+    "The yellowed pages whisper secrets that time tried to erase. Between lines and verses, my own story recovers the hue of what I lived.",
   espelho:
-    "O reflexo não é mais uma sombra turva. Ao encontrar meu olhar, a cor volta ao meu rosto, provando que eu ainda existo além da névoa.",
+    "The reflection is no longer a blurred shadow. Meeting my gaze, color returns to my face, proving I still exist beyond the fog.",
   quadro:
-    "A moldura vazia transbordou em matizes infinitos; a memória agora é uma obra completa, pintada com a cor da minha alma.",
+    "The empty frame overflowed with infinite hues; the memory is now a complete work, painted with the color of my soul.",
 };
 
-// Chaves fixas das interações
+// Fixed interaction keys
 const KEYS = ["café", "planta", "livros", "espelho", "quadro"];
 
-// Função utilitária para parsear CSV simples
+// Utility function to parse simple CSV
 function parseCSVToMap(csv: string): Record<string, string> {
   const lines = csv.split(/\r?\n/);
   const map: Record<string, string> = {};
@@ -35,7 +35,7 @@ function parseCSVToMap(csv: string): Record<string, string> {
   return map;
 }
 
-// Context para compartilhar textos com todos os componentes
+// Context to share texts with all components
 interface GeminiContextType {
   texts: Record<string, string>;
   loading: boolean;
@@ -45,20 +45,20 @@ interface GeminiContextType {
 
 const GeminiContext = createContext<GeminiContextType | null>(null);
 
-// Hook para acessar os textos em qualquer componente filho
+// Hook to access texts in any child component
 export function useGeminiText(key: string): string {
   const context = useContext(GeminiContext);
   if (!context) {
-    throw new Error("useGeminiText deve ser usado dentro de GenGemini");
+    throw new Error("useGeminiText must be used inside GenGemini");
   }
   return context.getTexto(key);
 }
 
-// Hook para acessar todo o contexto
+// Hook to access entire context
 export function useGemini(): GeminiContextType {
   const context = useContext(GeminiContext);
   if (!context) {
-    throw new Error("useGemini deve ser usado dentro de GenGemini");
+    throw new Error("useGemini must be used inside GenGemini");
   }
   return context;
 }
@@ -77,8 +77,8 @@ export default function GenGemini({ children }: { children: ReactNode }) {
       setError("");
       
       try {
-        // Chama a API Route do servidor
-        // A API Route está em: app/api/gemini-route/route.ts
+        // Calls server API Route
+        // API Route is at: app/api/gemini-route/route.ts
         const response = await fetch('/api/gemini-route');
         
         if (!response.ok) {
@@ -93,12 +93,12 @@ export default function GenGemini({ children }: { children: ReactNode }) {
         
         const csv = data.text;
         if (!csv) {
-          throw new Error("Resposta vazia do Gemini");
+          throw new Error("Empty response from Gemini");
         }
         
         const parsed = parseCSVToMap(csv);
         
-        // Garante que todas as chaves existam, usando fallback se faltar
+        // Ensures all keys exist, using fallback if missing
         const merged: Record<string, string> = { ...FALLBACKS };
         for (const key of KEYS) {
           if (parsed[key]) {
@@ -110,10 +110,10 @@ export default function GenGemini({ children }: { children: ReactNode }) {
           setTexts(merged);
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Erro ao chamar Gemini";
-        console.error("Erro no Gemini:", message);
+        const message = err instanceof Error ? err.message : "Error calling Gemini";
+        console.error("Gemini error:", message);
         setError(message);
-        // Usa fallbacks em caso de erro
+        // Uses fallbacks on error
         setTexts(FALLBACKS);
       } finally {
         if (!cancelled) {
