@@ -1,17 +1,25 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { Vector3, Raycaster } from "three";
-import { useGeminiText } from "./GenGemini";
+import { useFrame } from "@react-three/fiber";
+import { Vector3 } from "three";
 
 /**
- * Componente wrapper para objetos 3D que disparam textos do Gemini com tecla E (proximidade)
- * Agora auto-contido: gerencia proximidade, tecla E, e exibe prompt próprio
+ * Textos padrão para cada objeto interativo
+ */
+const TEXTOS_OBJETOS: Record<string, string> = {
+  livros: "Alguns livros de filosofia e ficção científica... Faz tempo que não leio nada.",
+  café: "A máquina de café. Mais um dia, mais um café. A rotina continua.",
+  quadro: "Um quadro abstrato na parede. Será que tem algum significado?",
+  planta: "Uma planta verde. Pelo menos ela ainda está viva, ao contrário da minha motivação.",
+  espelho: "Meu reflexo me olha de volta. Será que ainda me reconheço?",
+};
+
+/**
+ * Componente wrapper para objetos 3D que disparam textos com tecla E (proximidade)
+ * Versão simplificada sem dependência do Gemini
  *
  * Uso:
- * <InteractiveObject objeto="café" position={[x, y, z]}>
- *   <mesh>...</mesh>
- * </InteractiveObject>
+ * <InteractiveObject objeto="café" position={[x, y, z]} />
  */
 export function InteractiveObject({
   objeto,
@@ -23,10 +31,10 @@ export function InteractiveObject({
   objeto: string;
   position?: [number, number, number];
   interactionDistance?: number;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onInteract?: (texto: string) => void;
 }) {
-  const texto = useGeminiText(objeto);
+  const texto = TEXTOS_OBJETOS[objeto] || `Você examina ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
@@ -42,7 +50,7 @@ export function InteractiveObject({
         detail: { objeto, texto },
       }),
     );
-    console.log(`Interagiu com ${objeto}:`, texto);
+    console.log(`✨ Interagiu com ${objeto}:`, texto);
   };
 
   // Detecta proximidade a cada frame usando a POSIÇÃO DO JOGADOR

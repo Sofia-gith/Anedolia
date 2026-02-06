@@ -51,6 +51,12 @@ export function Model(props) {
         interactionDistance={2.0}
       />
 
+      <InteractiveObject
+        objeto="espelho"
+        position={[4.0, 1.2, -0.5]}
+        interactionDistance={1.8}
+      />
+
     </group>
   )
 }
