@@ -8,7 +8,7 @@
  * - yaw / pitch são ângulos controlados pelo mouse
  * - A cada frame calcula a posição ideal usando coordenadas esféricas
  *   ao redor do personagem
- * - Lerp suave para seguir sem sacudir
+ * - Lerp suave (delta-time independent) para seguir sem sacudir
  * - Durante zoom (interação) a câmera para — quem controla é o CameraZoom
  */
 "use client";
@@ -24,29 +24,36 @@ interface CameraThirdPersonProps {
   distance?: number;
   /** Altura do ponto que a câmera mira no personagem (peito/cabeça) */
   lookAtHeight?: number;
-  /** Suavidade do lerp (0.05 = muito suave, 0.15 = mais firme) */
-  smoothness?: number;
+  /** Fator de suavidade para posição (maior = mais responsivo) */
+  positionSmoothing?: number;
+  /** Fator de suavidade para lookAt (maior = mais responsivo) */
+  lookAtSmoothing?: number;
   /** Velocidade de rotação do mouse */
   rotationSpeed?: number;
 }
 
 export function CameraThirdPerson({
   targetPosition,
-  distance = 1.8,        // curto — fica dentro da casa
-  lookAtHeight = 0.8,    // mira no peito do personagem
-  smoothness = 0.1,
+  distance = 1.8,
+  lookAtHeight = 0.8,
+  positionSmoothing = 8,
+  lookAtSmoothing = 12,
   rotationSpeed = 0.002,
 }: CameraThirdPersonProps) {
   const { camera, gl } = useThree();
 
   // Ângulos de órbita ao redor do personagem
-  const yaw = useRef(0);       // horizontal (mouse X)
-  const pitch = useRef(0.3);   // vertical   (mouse Y) — começa um pouco acima
+  const yaw = useRef(0);
+  const pitch = useRef(0.3);
 
   // Posições suavizadas (usadas para lerp entre frames)
   const smoothPos = useRef(new THREE.Vector3());
   const smoothLook = useRef(new THREE.Vector3());
   const initialized = useRef(false);
+
+  // Vetores reutilizáveis (evita alocação por frame)
+  const _idealPos = useRef(new THREE.Vector3());
+  const _idealLook = useRef(new THREE.Vector3());
 
   // Não controla durante zoom de interação
   const zoomState = useInteraction((state) => state.zoomState);
@@ -83,9 +90,12 @@ export function CameraThirdPerson({
   }, [gl, rotationSpeed]);
 
   // ---------- atualiza câmera todo frame ----------
-  useFrame(() => {
+  useFrame((_, delta) => {
     // durante zoom quem manda é o CameraZoom
     if (zoomState.isZooming) return;
+
+    // Clamp delta para evitar saltos (ex: aba inativa)
+    const dt = Math.min(delta, 0.1);
 
     // === posição ideal em coordenadas esféricas ===
     const cosP = Math.cos(pitch.current);
@@ -93,17 +103,17 @@ export function CameraThirdPerson({
     const sinY = Math.sin(yaw.current);
     const cosY = Math.cos(yaw.current);
 
-    const idealX = targetPosition.x + distance * sinY * cosP;
-    const idealY = targetPosition.y + lookAtHeight + distance * sinP;
-    const idealZ = targetPosition.z + distance * cosY * cosP;
-
-    const idealPos = new THREE.Vector3(idealX, idealY, idealZ);
+    const idealPos = _idealPos.current.set(
+      targetPosition.x + distance * sinY * cosP,
+      targetPosition.y + lookAtHeight + distance * sinP,
+      targetPosition.z + distance * cosY * cosP,
+    );
 
     // ponto que a câmera mira (peito do personagem)
-    const idealLook = new THREE.Vector3(
+    const idealLook = _idealLook.current.set(
       targetPosition.x,
       targetPosition.y + lookAtHeight,
-      targetPosition.z
+      targetPosition.z,
     );
 
     // === inicializa no primeiro frame ===
@@ -113,9 +123,12 @@ export function CameraThirdPerson({
       initialized.current = true;
     }
 
-    // === lerp suave ===
-    smoothPos.current.lerp(idealPos, smoothness);
-    smoothLook.current.lerp(idealLook, smoothness);
+    // === lerp suave (delta-time independent) ===
+    const posT = 1 - Math.exp(-positionSmoothing * dt);
+    const lookT = 1 - Math.exp(-lookAtSmoothing * dt);
+
+    smoothPos.current.lerp(idealPos, posT);
+    smoothLook.current.lerp(idealLook, lookT);
 
     camera.position.copy(smoothPos.current);
     camera.lookAt(smoothLook.current);
