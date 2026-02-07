@@ -4,21 +4,21 @@ import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
 
 /**
- * Textos padrão para cada objeto interativo
+ * Default texts for each interactive object
  */
-const TEXTOS_OBJETOS: Record<string, string> = {
-  livros: "Alguns livros de filosofia e ficção científica... Faz tempo que não leio nada.",
-  café: "A máquina de café. Mais um dia, mais um café. A rotina continua.",
-  quadro: "Um quadro abstrato na parede. Será que tem algum significado?",
-  planta: "Uma planta verde. Pelo menos ela ainda está viva, ao contrário da minha motivação.",
-  espelho: "Meu reflexo me olha de volta. Será que ainda me reconheço?",
+const OBJECT_TEXTS: Record<string, string> = {
+  livros: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  café: "The coffee machine. Another day, another coffee. The routine continues.",
+  quadro: "An abstract painting on the wall. Does it mean anything?",
+  planta: "A green plant. At least it's still alive, unlike my motivation.",
+  espelho: "My reflection stares back at me. Do I still recognize myself?",
 };
 
 /**
- * Componente wrapper para objetos 3D que disparam textos com tecla E (proximidade)
- * Versão simplificada sem dependência do Gemini
+ * Wrapper component for 3D objects that trigger texts with E key (proximity)
+ * Simplified version without Gemini dependency
  *
- * Uso:
+ * Usage:
  * <InteractiveObject objeto="café" position={[x, y, z]} />
  */
 export function InteractiveObject({
@@ -34,7 +34,7 @@ export function InteractiveObject({
   children?: React.ReactNode;
   onInteract?: (texto: string) => void;
 }) {
-  const texto = TEXTOS_OBJETOS[objeto] || `Você examina ${objeto}.`;
+  const texto = OBJECT_TEXTS[objeto] || `You examine the ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
@@ -44,18 +44,18 @@ export function InteractiveObject({
     if (onInteract) {
       onInteract(texto);
     }
-    // Dispara evento customizado para a UI externa
+    // Dispatches custom event for external UI
     window.dispatchEvent(
       new CustomEvent("showGeminiText", {
         detail: { objeto, texto },
       }),
     );
-    console.log(`✨ Interagiu com ${objeto}:`, texto);
+    console.log(`✨ Interacted with ${objeto}:`, texto);
   };
 
-  // Detecta proximidade a cada frame usando a POSIÇÃO DO JOGADOR
+  // Detects proximity every frame using PLAYER POSITION
   useFrame(() => {
-    // Obtém a posição atual do jogador do store global
+    // Gets current player position from global store
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerPos = (window as any).__playerPosition || [0, 0, 0];
@@ -69,7 +69,7 @@ export function InteractiveObject({
     }
   });
 
-  // Escuta tecla E quando próximo
+  // Listens to E key when nearby
   useEffect(() => {
     if (!isNearby) return;
 
@@ -88,7 +88,7 @@ export function InteractiveObject({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isNearby, texto]);
 
-  // Emite evento de proximidade para UI externa mostrar prompt
+  // Emits proximity event for external UI to show prompt
   useEffect(() => {
     if (isNearby) {
       window.dispatchEvent(

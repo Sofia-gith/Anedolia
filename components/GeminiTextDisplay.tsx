@@ -3,9 +3,9 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 /**
- * UI Component que exibe os textos do Gemini com imagem
- * Agora apenas exibe - não gerencia interação
- * Deve ser renderizado FORA do Canvas, ao lado dele
+ * UI Component that displays Gemini texts with image
+ * Now only displays - doesn't manage interaction
+ * Must be rendered OUTSIDE the Canvas, alongside it
  */
 export function GeminiTextDisplay() {
   const [currentText, setCurrentText] = useState<{
@@ -35,10 +35,10 @@ export function GeminiTextDisplay() {
     setCurrentText(null);
   }, [currentText]);
 
-  // Escuta evento de mostrar texto
+  // Listens to show text event
   useEffect(() => {
     const handleShowText = (e: CustomEvent) => {
-      console.log("Evento recebido:", e.detail);
+      console.log("Event received:", e.detail);
       setCurrentText(e.detail);
     };
 
@@ -52,7 +52,7 @@ export function GeminiTextDisplay() {
     };
   }, []);
 
-  // Escuta eventos de proximidade
+  // Listens to proximity events
   useEffect(() => {
     const handleNearby = (e: CustomEvent) => {
       setNearbyObject(e.detail);
@@ -89,7 +89,7 @@ export function GeminiTextDisplay() {
     };
   }, [currentText, handleClose]);
 
-  // Mapeia o nome do objeto para o nome do arquivo da imagem
+  // Maps object name to image filename
   const imageMap: Record<string, string> = {
     café: "cafe.png",
     planta: "planta.png",
@@ -100,7 +100,7 @@ export function GeminiTextDisplay() {
 
   return (
     <>
-      {/* Prompt de interação quando próximo */}
+      {/* Interaction prompt when nearby */}
       {nearbyObject && !currentText && (
         <div
           style={{
@@ -148,13 +148,13 @@ export function GeminiTextDisplay() {
                 fontWeight: "500",
               }}
             >
-              Interagir com <strong>{nearbyObject.name}</strong>
+              Interact with <strong>{nearbyObject.name}</strong>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de texto e imagem */}
+      {/* Text and image modal */}
       {currentText && (
         <div
           style={{
@@ -177,7 +177,7 @@ export function GeminiTextDisplay() {
             handleClose();
           }}
         >
-          {/* Imagem no centro */}
+          {/* Image in center */}
           <div
             style={{
               marginBottom: "40px",
@@ -199,7 +199,7 @@ export function GeminiTextDisplay() {
             />
           </div>
 
-          {/* Texto embaixo */}
+          {/* Text below */}
           <div
             style={{
               background: "rgba(0, 0, 0, 0.75)",

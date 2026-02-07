@@ -1,11 +1,16 @@
 /**
- * Página Principal - Jogo em Terceira Pessoa (COM SEQUÊNCIA DE DESPERTAR)
+ * Main Page - Third Person Game (WITH WAKE UP SEQUENCE)
  *
- * Fluxo:
- * 1. Intro narrativa (imagens + textos)
- * 2. Personagem sentado na cama
- * 3. Animação de levantar (tecla ESPAÇO ou automático após 2s)
- * 4. Gameplay normal
+ * Flow:
+ * 1. Narrative intro (images + texts)
+ * 2. Character sitting on bed
+ * 3. Stand up animation (SPACE key ONLY - NO automatic timer)
+ * 4. Normal gameplay
+ * 
+ * CHANGES FOR HACKATHON:
+ * - Removed 3-second automatic timer
+ * - Player MUST press SPACE to stand up
+ * - All text translated to English
  */
 "use client";
 
@@ -28,7 +33,7 @@ import { Suspense, useState, useEffect } from "react";
 import * as THREE from "three";
 
 /**
- * Mapeamento de teclas para controles do jogador
+ * Keyboard mapping for player controls
  */
 const map = [
   { name: "forward", keys: ["ArrowUp", "w", "W"] },
@@ -39,7 +44,7 @@ const map = [
   { name: "interact", keys: ["e", "E"] },
 ];
 
-// Progresso de cor por objeto
+// Color progress per object
 const OBJECT_COLOR_VALUES: Record<string, number> = {
   café: 0.1,
   planta: 0.15,
@@ -48,50 +53,50 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
   quadro: 0.3,
 };
 
-// === POSIÇÃO DA CAMA (baseado no modelo do apartamento) ===
+// === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
 const BED_ROTATION = 0; 
 const characterOffset = -0.45;
 
-// === POSIÇÃO INICIAL DO JOGADOR (na frente da cama após levantar) ===
+// === INITIAL PLAYER POSITION (in front of bed after standing up) ===
 const PLAYER_SPAWN_POSITION: [number, number, number] = [
-  BED_POSITION[0],           // Mesmo X da cama
-  BED_POSITION[1],           // Mesma altura
-  BED_POSITION[2] + 0.8,     // Um pouco à frente da cama
+  BED_POSITION[0],           // Same X as bed
+  BED_POSITION[1],           // Same height
+  BED_POSITION[2] + 0.8,     // Slightly in front of bed
 ];
 
-// === ROTAÇÃO INICIAL DO JOGADOR (virado para frente) ===
-// 0 = virado para Z+ (trás)
-// Math.PI / 2 = virado para a esquerda
-// Math.PI = virado para Z- (frente)
-// Math.PI * 1.5 = virado para a direita
-const PLAYER_INITIAL_ROTATION = Math.PI * 1.5; // Ajuste conforme a orientação do modelo
+// === INITIAL PLAYER ROTATION (facing forward) ===
+// 0 = facing Z+ (back)
+// Math.PI / 2 = facing left
+// Math.PI = facing Z- (front)
+// Math.PI * 1.5 = facing right
+const PLAYER_INITIAL_ROTATION = Math.PI * 1.5; // Adjust based on model orientation
 
-// === POSIÇÃO DA CÂMERA DURANTE DESPERTAR ===
+// === CAMERA POSITION DURING WAKE UP ===
 const WAKEUP_CAMERA_POSITION: [number, number, number] = [
-  2.5,   // X - Mais para a lateral
-  1.4,   // Y - Altura média
-  -3.5,  // Z - Mais próximo
+  2.5,   // X - More to the side
+  1.4,   // Y - Medium height
+  -3.5,  // Z - Closer
 ];
 
 const WAKEUP_CAMERA_LOOKAT: [number, number, number] = [
-  3.0,   // X - Centro da cama
-  0.8,   // Y - Altura 
-  -5.0,  // Z - Profundidade
+  3.0,   // X - Center of bed
+  0.8,   // Y - Height 
+  -5.0,  // Z - Depth
 ];
 
 /**
- * Estados do jogo
+ * Game states
  */
 type GameState = 
-  | "intro"           // Mostrando intro narrativa
-  | "waking_up"       // Personagem na cama, prestes a levantar
-  | "standing_up"     // Animação de levantar
-  | "playing";        // Gameplay normal
+  | "intro"           // Showing narrative intro
+  | "waking_up"       // Character on bed, about to stand
+  | "standing_up"     // Standing animation
+  | "playing";        // Normal gameplay
 
 /**
- * CAMERA POSITION HELPER - COMPONENTE DE AJUSTE
- * Use as teclas para ajustar a posição da câmera durante o wake up
+ * CAMERA POSITION HELPER - ADJUSTMENT COMPONENT
+ * Use keys to adjust camera position during wake up
  */
 function CameraPositionHelper() {
   const { camera } = useThree();
@@ -102,10 +107,10 @@ function CameraPositionHelper() {
   });
 
   useEffect(() => {
-    const step = 0.1; // Passo menor para ajuste mais fino
+    const step = 0.1; // Smaller step for finer adjustment
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Previne conflito com o prompt de "Space para levantar"
+      // Prevents conflict with "Space to stand" prompt
       if (e.code === "Space") return;
       
       const newPos = { ...cameraPos };
@@ -118,17 +123,17 @@ function CameraPositionHelper() {
         case "q": case "Q": newPos.y += step; break;
         case "e": case "E": newPos.y -= step; break;
         
-        // Presets úteis para encontrar o ângulo ideal
-        case "1": // Vista mais à esquerda (padrão corrigido)
+        // Useful presets to find ideal angle
+        case "1": // More left view (corrected default)
           newPos.x = 0.5; newPos.y = 1.8; newPos.z = -2.5;
           break;
-        case "2": // Vista mais central
+        case "2": // More central view
           newPos.x = 1.5; newPos.y = 1.7; newPos.z = -2.5;
           break;
-        case "3": // Vista lateral direita
+        case "3": // Right side view
           newPos.x = 5.0; newPos.y = 1.6; newPos.z = -5.0;
           break;
-        case "4": // Vista de cima (aérea)
+        case "4": // Top view (aerial)
           newPos.x = 3.0; newPos.y = 4.0; newPos.z = -5.0;
           break;
         default: return;
@@ -138,7 +143,7 @@ function CameraPositionHelper() {
       camera.position.set(newPos.x, newPos.y, newPos.z);
       camera.lookAt(BED_POSITION[0], BED_POSITION[1] + 0.7, BED_POSITION[2]);
       
-      console.log(`📷 Câmera: [${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)}, ${newPos.z.toFixed(1)}]`);
+      console.log(`📷 Camera: [${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)}, ${newPos.z.toFixed(1)}]`);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -149,7 +154,7 @@ function CameraPositionHelper() {
 }
 
 /**
- * Componente interno da cena
+ * Internal scene component
  */
 function Scene({ 
   colorProgress, 
@@ -167,17 +172,17 @@ function Scene({
   return (
     <>
       <Physics>
-        {/* === ILUMINAÇÃO === */}
+        {/* === LIGHTING === */}
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Environment preset="city" />
 
-        {/* === HELPER DE POSIÇÃO DA CÂMERA (REMOVER DEPOIS) === */}
+        {/* === CAMERA POSITION HELPER (REMOVE LATER) === */}
         {(gameState === "waking_up" || gameState === "standing_up") && (
           <CameraPositionHelper />
         )}
 
-        {/* === SEQUÊNCIA DE DESPERTAR === */}
+        {/* === WAKE UP SEQUENCE === */}
         {(gameState === "waking_up" || gameState === "standing_up") && (
           <WakeUpSequence
             bedPosition={BED_POSITION}
@@ -189,7 +194,7 @@ function Scene({
           />
         )}
 
-        {/* === JOGADOR 3D (só aparece após levantar) === */}
+        {/* === 3D PLAYER (only appears after standing) === */}
         {gameState === "playing" && (
           <Player3D
             modelPath="/models/character_final_.glb"
@@ -202,7 +207,7 @@ function Scene({
           />
         )}
 
-        {/* === CÂMERA EM TERCEIRA PESSOA === */}
+        {/* === THIRD PERSON CAMERA === */}
         {gameState === "playing" && (
           <CameraThirdPerson
             targetPosition={playerPosition}
@@ -213,21 +218,21 @@ function Scene({
           />
         )}
 
-        {/* === CHÃO INVISÍVEL === */}
+        {/* === INVISIBLE FLOOR === */}
         <RigidBody type="fixed" colliders="cuboid" position={[0, 0, 0]}>
           <mesh visible={false}>
             <boxGeometry args={[100, 0.1, 100]} />
           </mesh>
         </RigidBody>
 
-        {/* === MODELO DO APARTAMENTO === */}
+        {/* === APARTMENT MODEL === */}
         <Apartamento />
 
-        {/* === SISTEMA DE ZOOM DA CÂMERA === */}
+        {/* === CAMERA ZOOM SYSTEM === */}
         {gameState === "playing" && <CameraZoom />}
       </Physics>
 
-      {/* === EFEITOS VISUAIS === */}
+      {/* === VISUAL EFFECTS === */}
       <AnedoliaEffects colorProgress={colorProgress} />
     </>
   );
@@ -241,41 +246,33 @@ export default function Teste() {
   const [gameState, setGameState] = useState<GameState>("intro");
   const [showWakeUpPrompt, setShowWakeUpPrompt] = useState(false);
 
-  // Gerencia transições de estado
+  // Manages state transitions
   const handleIntroComplete = () => {
-    console.log("📖 Intro narrativa completa");
+    console.log("📖 Narrative intro complete");
     setGameState("waking_up");
     
-    // Mostra prompt para levantar após 1 segundo
+    // Shows wake up prompt after 1 second
     setTimeout(() => {
       setShowWakeUpPrompt(true);
     }, 1000);
 
-    // Inicia automaticamente após 4 segundos se não apertar espaço
-    setTimeout(() => {
-      setGameState((current) => {
-        if (current === "waking_up") {
-          setShowWakeUpPrompt(false);
-          return "standing_up";
-        }
-        return current;
-      });
-    }, 5000);
+    // ❌ REMOVED: Automatic timer after 4 seconds
+    // Player MUST press SPACE now!
   };
 
   const handleWakeUpComplete = () => {
-    console.log("🚶 Personagem levantou - gameplay liberado");
+    console.log("🚶 Character stood up - gameplay unlocked");
     setGameState("playing");
   };
 
-  // Listener para tecla ESPAÇO durante waking_up
+  // Listener for SPACE key during waking_up
   useEffect(() => {
     if (gameState !== "waking_up") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") {
         e.preventDefault();
-        console.log("⌨️ Espaço pressionado - iniciando animação");
+        console.log("⌨️ Space pressed - starting animation");
         setGameState("standing_up");
         setShowWakeUpPrompt(false);
       }
@@ -285,7 +282,7 @@ export default function Teste() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameState]);
 
-  // Sistema de objetos interagidos
+  // Interacted objects system
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
       const { objeto } = e.detail;
@@ -320,12 +317,12 @@ export default function Teste() {
 
   return (
     <GenGemini>
-      {/* === INTRO NARRATIVA === */}
+      {/* === NARRATIVE INTRO === */}
       {gameState === "intro" && (
         <IntroNarrativa onComplete={handleIntroComplete} />
       )}
 
-      {/* === JOGO === */}
+      {/* === GAME === */}
       {gameState !== "intro" && (
         <KeyboardControls map={map}>
           <div
@@ -335,7 +332,7 @@ export default function Teste() {
               e.currentTarget.focus();
             }}
           >
-            {/* Canvas único */}
+            {/* Single canvas */}
             <Canvas
               camera={{ position: [0, 1.8, 1.8], fov: 75 }}
               onCreated={({ gl }) => {
@@ -351,7 +348,7 @@ export default function Teste() {
               </Suspense>
             </Canvas>
 
-            {/* === INSTRUÇÕES DE AJUSTE (TEMPORÁRIO) === */}
+            {/* === ADJUSTMENT INSTRUCTIONS (TEMPORARY) === */}
             {(gameState === "waking_up" || gameState === "standing_up") && (
               <div
                 style={{
@@ -368,26 +365,26 @@ export default function Teste() {
                 }}
               >
                 <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#4CAF50" }}>
-                  🔧 MODO AJUSTE DE CÂMERA
+                  🔧 CAMERA ADJUSTMENT MODE
                 </div>
                 <div style={{ marginBottom: "5px" }}>
-                  <strong>Setas:</strong> Move câmera (horizontal)
+                  <strong>Arrows:</strong> Move camera (horizontal)
                 </div>
                 <div style={{ marginBottom: "5px" }}>
-                  <strong>Q/E:</strong> Sobe/Desce câmera
+                  <strong>Q/E:</strong> Move camera up/down
                 </div>
                 <div style={{ marginBottom: "5px" }}>
-                  <strong>1-4:</strong> Posições preset
+                  <strong>1-4:</strong> Preset positions
                 </div>
                 <div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.7, borderTop: "1px solid #444", paddingTop: "8px" }}>
-                  📍 Veja coordenadas no console (F12)<br/>
-                  🎯 Quando encontrar a posição ideal, copie os valores<br/>
-                  ❌ Remova o CameraPositionHelper depois
+                  📍 See coordinates in console (F12)<br/>
+                  🎯 When you find ideal position, copy values<br/>
+                  ❌ Remove CameraPositionHelper after
                 </div>
               </div>
             )}
 
-            {/* === PROMPT PARA LEVANTAR === */}
+            {/* === PROMPT TO STAND UP === */}
             {showWakeUpPrompt && (
               <div
                 style={{
@@ -406,15 +403,13 @@ export default function Teste() {
                 }}
               >
                 <div style={{ marginBottom: "15px" }}>
-                  Pressione <strong>ESPAÇO</strong> para levantar
+                  Press <strong>SPACE</strong> to stand up
                 </div>
-                <div style={{ fontSize: "14px", opacity: 0.6 }}>
-                  (ou aguarde 3 segundos)
-                </div>
+                {/* ❌ REMOVED: "(or wait 3 seconds)" text */}
               </div>
             )}
 
-            {/* === INSTRUÇÕES (só mostra durante gameplay) === */}
+            {/* === INSTRUCTIONS (only shows during gameplay) === */}
             {gameState === "playing" && (
               <div
                 style={{
@@ -431,23 +426,23 @@ export default function Teste() {
                 }}
               >
                 <div>
-                  <strong>Controles:</strong>
+                  <strong>Controls:</strong>
                 </div>
-                <div>WASD - Mover</div>
-                <div>Mouse - Girar câmera</div>
-                <div>Space - Correr</div>
-                <div>E - Interagir</div>
+                <div>WASD - Move</div>
+                <div>Mouse - Rotate camera</div>
+                <div>Space - Run</div>
+                <div>E - Interact</div>
                 <div style={{ marginTop: "10px", fontSize: "12px", opacity: 0.7 }}>
-                  Clique na tela para travar o mouse
+                  Click on screen to lock mouse
                 </div>
               </div>
             )}
 
-            {/* UI de texto do Gemini */}
+            {/* Gemini text UI */}
             {gameState === "playing" && <GeminiTextDisplay />}
           </div>
 
-          {/* Animação de pulso para o prompt */}
+          {/* Pulse animation for prompt */}
           <style jsx>{`
             @keyframes pulse {
               0%, 100% {
