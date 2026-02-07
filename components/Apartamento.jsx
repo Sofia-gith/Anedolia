@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";
+import { PictureFrame } from "./PictureFrame";
 import * as THREE from 'three';
 
 export function Model(props) {
@@ -37,10 +38,17 @@ export function Model(props) {
         interactionDistance={1.8}
       />
 
-      {/* Quadro na parede */}
+      {/* Modelo 3D do quadro */}
+      <PictureFrame 
+        position={[3.90, 0.66, -7.0]}   // Mais alto (Y=1.5) e mais próximo da parede (Z=-6.68)
+        rotation={[0, Math.PI, 0]}       // Rotacionado 180° para ficar de frente (virado para o quarto)
+        scale={0.07}                     // MENOR: reduzido para 0.08
+      />
+      
+      {/* Área de interação do quadro */}
       <InteractiveObject
         objeto="quadro"
-        position={[3.95, 0.6, -6.64]}
+        position={[3.95, 1.5, -6.64]}   // Posição ajustada
         interactionDistance={2.0}
       />
 
