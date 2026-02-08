@@ -36,8 +36,10 @@ function useInteractionAudio(audioPath: string) {
  * Textos padrão para cada objeto interativo
  */
 const OBJECT_TEXTS: Record<string, string> = {
-  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
+  books:
+    "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee:
+    "The coffee machine. Another day, another coffee. The routine continues.",
   frame: "An abstract painting on the wall. Does it mean anything?",
   plant: "A green plant. At least it's still alive, unlike my motivation.",
   mirror: "My reflection stares back at me. Do I still recognize myself?",
@@ -93,7 +95,7 @@ export function InteractiveObject({
   // Detects proximity every frame using PLAYER POSITION
   useFrame(() => {
     // Gets current player position from global store
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerPos = (window as any).__playerPosition || [0, 0, 0];
     const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
@@ -113,6 +115,7 @@ export function InteractiveObject({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "e" || e.key === "E") && isNearby) {
         // Don't re-trigger if the interaction modal is still open
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((window as any).__interactionModalOpen) return;
 
         const now = Date.now();
@@ -126,6 +129,7 @@ export function InteractiveObject({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNearby, texto]);
 
   // Emits proximity event for external UI to show prompt
