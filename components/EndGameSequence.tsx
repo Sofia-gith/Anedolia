@@ -21,7 +21,7 @@ export function EndGameSequence({ onClose, allInteractionsComplete = false }: En
 
   // Define conteúdo baseado em se completou todas as interações
   const imagePath = allInteractionsComplete 
-    ? "/endGame/smile.gif"         
+    ? "/endGame/smile.gif"             
     : "/endGame/primeiro_slide.png";     
   
   const mainText = allInteractionsComplete

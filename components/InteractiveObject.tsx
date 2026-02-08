@@ -4,45 +4,34 @@ import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
 
 /**
- * Hook para reproduzir som de interação
- */
-function useInteractionAudio(audioPath: string) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    audioRef.current = new Audio(audioPath);
-    audioRef.current.volume = 0.5; // Volume ajustável (0.0 a 1.0)
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, [audioPath]);
-
-  const play = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0; // Reinicia o áudio
-      audioRef.current.play().catch((error) => {
-        console.warn("Erro ao reproduzir áudio:", error);
-      });
-    }
-  };
-
-  return { play };
-}
-
-/**
- * Textos padrão para cada objeto interativo
+ * Default texts for each interactive object
+ * Supports both English and Portuguese names
  */
 const OBJECT_TEXTS: Record<string, string> = {
-  books:
-    "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  coffee:
-    "The coffee machine. Another day, another coffee. The routine continues.",
+  // Portuguese names (original)
+  livros: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  café: "The coffee machine. Another day, another coffee. The routine continues.",
+  quadro: "An abstract painting on the wall. Does it mean anything?",
+  planta: "A green plant. At least it's still alive, unlike my motivation.",
+  espelho: "My reflection stares back at me. Do I still recognize myself?",
+  
+  // English names (for compatibility)
+  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
   frame: "An abstract painting on the wall. Does it mean anything?",
   plant: "A green plant. At least it's still alive, unlike my motivation.",
   mirror: "My reflection stares back at me. Do I still recognize myself?",
+};
+
+/**
+ * Map English names to Portuguese (canonical) names
+ */
+const NAME_MAPPING: Record<string, string> = {
+  books: "livros",
+  coffee: "café",
+  frame: "quadro",
+  plant: "planta",
+  mirror: "espelho",
 };
 
 /**
@@ -51,6 +40,7 @@ const OBJECT_TEXTS: Record<string, string> = {
  *
  * Usage:
  * <InteractiveObject objeto="café" position={[x, y, z]} />
+ * <InteractiveObject objeto="coffee" position={[x, y, z]} /> // Also works!
  */
 export function InteractiveObject({
   objeto,
@@ -58,57 +48,53 @@ export function InteractiveObject({
   interactionDistance = 2.5,
   children,
   onInteract,
-  audioPath, // Som opcional
 }: {
   objeto: string;
   position?: [number, number, number];
   interactionDistance?: number;
   children?: React.ReactNode;
   onInteract?: (texto: string) => void;
-  audioPath?: string; // Caminho opcional para som customizado
 }) {
-  const texto = OBJECT_TEXTS[objeto] || `You examine the ${objeto}.`;
+  // Convert English name to Portuguese (canonical) if needed
+  const canonicalName = NAME_MAPPING[objeto] || objeto;
+  
+  const texto = OBJECT_TEXTS[objeto] || OBJECT_TEXTS[canonicalName] || `You examine the ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
   const interactCooldown = 500;
-  const { play: playAudio } = useInteractionAudio(audioPath || "");
 
   const handleInteraction = () => {
-    // Reproduz o áudio se fornecido
-    if (audioPath) {
-      playAudio();
-    }
-
     if (onInteract) {
       onInteract(texto);
     }
     
-    // Dispara evento para o page.tsx detectar (usado para progresso e espelho)
+    // Dispatches event to page.tsx (used for progress and mirror)
+    // ALWAYS uses canonical Portuguese name for consistency
     window.dispatchEvent(
       new CustomEvent("objectInteracted", {
-        detail: { objeto },
+        detail: { objeto: canonicalName },
       }),
     );
     
-    // Para o espelho, não mostra a UI Gemini antiga
-    // A sequência final será controlada pelo page.tsx
-    if (objeto !== "espelho") {
+    // For mirror, don't show old Gemini UI
+    // The final sequence will be controlled by page.tsx
+    if (canonicalName !== "espelho") {
       // Dispatches custom event for external UI
       window.dispatchEvent(
         new CustomEvent("showGeminiText", {
-          detail: { objeto, texto },
+          detail: { objeto: canonicalName, texto },
         }),
       );
     }
     
-    console.log(`✨ Interacted with ${objeto}:`, texto);
+    console.log(`✨ Interacted with ${objeto} (canonical: ${canonicalName}):`, texto);
   };
 
   // Detects proximity every frame using PLAYER POSITION
   useFrame(() => {
     // Gets current player position from global store
-
+    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerPos = (window as any).__playerPosition || [0, 0, 0];
     const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
@@ -127,10 +113,6 @@ export function InteractiveObject({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "e" || e.key === "E") && isNearby) {
-        // Don't re-trigger if the interaction modal is still open
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((window as any).__interactionModalOpen) return;
-
         const now = Date.now();
         if (now - lastInteractTime.current > interactCooldown) {
           e.preventDefault();
@@ -142,7 +124,6 @@ export function InteractiveObject({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNearby, texto]);
 
   // Emits proximity event for external UI to show prompt
@@ -151,19 +132,19 @@ export function InteractiveObject({
       window.dispatchEvent(
         new CustomEvent("objectNearby", {
           detail: {
-            objeto,
-            name: objeto.charAt(0).toUpperCase() + objeto.slice(1),
+            objeto: canonicalName,
+            name: canonicalName.charAt(0).toUpperCase() + canonicalName.slice(1),
           },
         }),
       );
     } else {
       window.dispatchEvent(
         new CustomEvent("objectFar", {
-          detail: { objeto },
+          detail: { objeto: canonicalName },
         }),
       );
     }
-  }, [isNearby, objeto]);
+  }, [isNearby, canonicalName]);
 
   return <group position={position}>{children}</group>;
 }

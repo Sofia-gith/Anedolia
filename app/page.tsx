@@ -65,6 +65,7 @@ const REQUIRED_OBJECTS_FOR_COMPLETE_ENDING = [
 // === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
 const BED_ROTATION = 0; 
+const characterOffset = -0.45;
 
 // === INITIAL PLAYER POSITION (in front of bed after standing up) ===
 const PLAYER_SPAWN_POSITION: [number, number, number] = [
@@ -268,7 +269,6 @@ export default function Teste() {
       setShowWakeUpPrompt(true);
     }, 1000);
 
-
     // Player MUST press SPACE now!
   };
 
@@ -409,7 +409,7 @@ export default function Teste() {
                 <div style={{ marginBottom: "15px" }}>
                   Press <strong>SPACE</strong> to stand up
                 </div>
-        
+                {/* ❌ REMOVED: "(or wait 3 seconds)" text */}
               </div>
             )}
 
