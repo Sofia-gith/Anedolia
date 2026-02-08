@@ -91,6 +91,13 @@ export function GeminiTextDisplay() {
 
   // Maps object name to image filename
   const imageMap: Record<string, string> = {
+    // English keys (used by InteractiveObject in Apartamento.jsx)
+    coffee: "cafe.png",
+    plant: "planta.png",
+    books: "livro.png",
+    mirror: "espelho.png",
+    frame: "quadro.png",
+    // Portuguese keys (legacy / Apartamento0)
     café: "cafe.png",
     planta: "planta.png",
     livros: "livro.png",
