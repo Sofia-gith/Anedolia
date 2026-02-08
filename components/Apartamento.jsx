@@ -1,14 +1,14 @@
 "use client";
-import React, { useEffect, useRef } from 'react'
-import { useGLTF } from '@react-three/drei'
+import React, { useEffect, useRef } from "react";
+import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export function Model(props) {
-  const { scene } = useGLTF('/apartamento.glb')
+  const { scene } = useGLTF("/apartamento.glb");
   const sceneRef = useRef();
-  
+
   // Clone o modelo para evitar conflitos
   const clonedScene = scene.clone();
 
@@ -35,6 +35,7 @@ export function Model(props) {
         objeto="café"
         position={[-1.78, 0.91, 0.9]}
         interactionDistance={1.8}
+        audioPath="/songs/water_song.mp3"
       />
 
       {/* Quadro na parede */}
@@ -60,4 +61,4 @@ export function Model(props) {
   );
 }
 
-useGLTF.preload('/apartamento.glb')
+useGLTF.preload("/apartamento.glb");
