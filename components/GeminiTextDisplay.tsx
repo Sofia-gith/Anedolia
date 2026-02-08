@@ -18,11 +18,6 @@ export function GeminiTextDisplay() {
   } | null>(null);
 
   const handleClose = useCallback(() => {
-    // Unlock the pointer if it's locked (for 3D controls)
-    if (document.pointerLockElement) {
-      document.exitPointerLock();
-    }
-
     // Dispatch event to increment color progress
     if (currentText) {
       window.dispatchEvent(
@@ -33,6 +28,15 @@ export function GeminiTextDisplay() {
     }
 
     setCurrentText(null);
+
+    // Re-acquire pointer lock on the canvas so the player can continue
+    // without needing to click the screen again
+    requestAnimationFrame(() => {
+      const canvas = document.querySelector("canvas");
+      if (canvas && !document.pointerLockElement) {
+        canvas.requestPointerLock();
+      }
+    });
   }, [currentText]);
 
   // Listens to show text event
