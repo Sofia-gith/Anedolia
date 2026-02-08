@@ -5,7 +5,7 @@ import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";
 import { PictureFrame } from "./PictureFrame";
 import { Book } from "./Book";
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export function Model(props) {
   const { scene } = useGLTF("/apartamento.glb");
@@ -45,6 +45,7 @@ export function Model(props) {
         objeto="books"
         position={[3.65, 0.81, -3.76]}
         interactionDistance={1.3}
+        audioPath="/songs/paper_song.mp3"
       />
 
       {/* Máquina de café */}
