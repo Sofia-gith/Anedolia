@@ -112,6 +112,9 @@ export function InteractiveObject({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "e" || e.key === "E") && isNearby) {
+        // Don't re-trigger if the interaction modal is still open
+        if ((window as any).__interactionModalOpen) return;
+
         const now = Date.now();
         if (now - lastInteractTime.current > interactCooldown) {
           e.preventDefault();

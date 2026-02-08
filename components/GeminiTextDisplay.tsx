@@ -29,6 +29,13 @@ export function GeminiTextDisplay() {
 
     setCurrentText(null);
 
+    // Clear modal flag after a short delay so the same E keypress
+    // doesn't immediately re-trigger the interaction
+    setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__interactionModalOpen = false;
+    }, 200);
+
     // Re-acquire pointer lock on the canvas so the player can continue
     // without needing to click the screen again
     requestAnimationFrame(() => {
@@ -44,6 +51,9 @@ export function GeminiTextDisplay() {
     const handleShowText = (e: CustomEvent) => {
       console.log("Event received:", e.detail);
       setCurrentText(e.detail);
+      // Flag so InteractiveObject won't re-trigger while modal is open
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__interactionModalOpen = true;
     };
 
     window.addEventListener("showGeminiText", handleShowText as EventListener);
