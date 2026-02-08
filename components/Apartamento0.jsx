@@ -7,7 +7,7 @@ Source: https://sketchfab.com/3d-models/apartamento-77e965e2d3244bd58c476ca96baf
 Title: Apartamento
 */
 "use client";
-import React, { Suspense } from "react";
+import React from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";

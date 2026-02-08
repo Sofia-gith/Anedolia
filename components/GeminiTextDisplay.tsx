@@ -18,11 +18,6 @@ export function GeminiTextDisplay() {
   } | null>(null);
 
   const handleClose = useCallback(() => {
-    // Unlock the pointer if it's locked (for 3D controls)
-    if (document.pointerLockElement) {
-      document.exitPointerLock();
-    }
-
     // Dispatch event to increment color progress
     if (currentText) {
       window.dispatchEvent(
@@ -33,6 +28,22 @@ export function GeminiTextDisplay() {
     }
 
     setCurrentText(null);
+
+    // Clear modal flag after a short delay so the same E keypress
+    // doesn't immediately re-trigger the interaction
+    setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__interactionModalOpen = false;
+    }, 200);
+
+    // Re-acquire pointer lock on the canvas so the player can continue
+    // without needing to click the screen again
+    requestAnimationFrame(() => {
+      const canvas = document.querySelector("canvas");
+      if (canvas && !document.pointerLockElement) {
+        canvas.requestPointerLock();
+      }
+    });
   }, [currentText]);
 
   // Listens to show text event
@@ -40,6 +51,9 @@ export function GeminiTextDisplay() {
     const handleShowText = (e: CustomEvent) => {
       console.log("Event received:", e.detail);
       setCurrentText(e.detail);
+      // Flag so InteractiveObject won't re-trigger while modal is open
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__interactionModalOpen = true;
     };
 
     window.addEventListener("showGeminiText", handleShowText as EventListener);
@@ -91,6 +105,13 @@ export function GeminiTextDisplay() {
 
   // Maps object name to image filename
   const imageMap: Record<string, string> = {
+    // English keys (used by InteractiveObject in Apartamento.jsx)
+    coffee: "cafe.png",
+    plant: "planta.png",
+    books: "livro.png",
+    mirror: "espelho.png",
+    frame: "quadro.png",
+    // Portuguese keys (legacy / Apartamento0)
     café: "cafe.png",
     planta: "planta.png",
     livros: "livro.png",

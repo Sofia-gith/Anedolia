@@ -56,7 +56,6 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
 // === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
 const BED_ROTATION = 0; 
-const characterOffset = -0.45;
 
 // === INITIAL PLAYER POSITION (in front of bed after standing up) ===
 const PLAYER_SPAWN_POSITION: [number, number, number] = [
@@ -213,7 +212,6 @@ function Scene({
             targetPosition={playerPosition}
             distance={1.8}
             lookAtHeight={0.8}
-            smoothness={0.1}
             rotationSpeed={0.002}
           />
         )}
