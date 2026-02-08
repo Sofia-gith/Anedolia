@@ -21,8 +21,8 @@ export function EndGameSequence({ onClose, allInteractionsComplete = false }: En
 
   // Define conteúdo baseado em se completou todas as interações
   const imagePath = allInteractionsComplete 
-    ? "/endGame/smile.gif"              // Final positivo - GIF animado
-    : "/intro/primeiro_slide.png";      // Final incompleto - Primeira imagem da intro
+    ? "/endGame/smile.gif"         
+    : "/endGame/primeiro_slide.png";     
   
   const mainText = allInteractionsComplete
     ? "Maybe I still recognize myself after all..."

@@ -45,6 +45,13 @@ export function InteractiveObject({
       onInteract(texto);
     }
     
+    // Dispara evento para o page.tsx detectar (usado para progresso e espelho)
+    window.dispatchEvent(
+      new CustomEvent("objectInteracted", {
+        detail: { objeto },
+      }),
+    );
+    
     // Para o espelho, não mostra a UI Gemini antiga
     // A sequência final será controlada pelo page.tsx
     if (objeto !== "espelho") {

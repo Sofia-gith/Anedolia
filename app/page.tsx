@@ -222,7 +222,8 @@ function Scene({
             targetPosition={playerPosition}
             distance={1.8}
             lookAtHeight={0.8}
-            smoothness={0.1}
+            positionSmoothing={8}
+            lookAtSmoothing={12}
             rotationSpeed={0.002}
           />
         )}
@@ -404,9 +405,9 @@ export default function Teste() {
                   <strong>1-4:</strong> Preset positions
                 </div>
                 <div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.7, borderTop: "1px solid #444", paddingTop: "8px" }}>
-                  📍 See coordinates in console (F12)<br/>
-                  🎯 When you find ideal position, copy values<br/>
-                  ❌ Remove CameraPositionHelper after
+                   See coordinates in console (F12)<br/>
+                   When you find ideal position, copy values<br/>
+                   Remove CameraPositionHelper after
                 </div>
               </div>
             )}
