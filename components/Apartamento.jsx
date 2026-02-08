@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";
 import { PictureFrame } from "./PictureFrame";
 import { Book } from "./Book";
-import * as THREE from "three";
 
 export function Model(props) {
   const { scene } = useGLTF("/apartamento.glb");

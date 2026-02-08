@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
 import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
 
 interface BookProps {
   position?: [number, number, number];
