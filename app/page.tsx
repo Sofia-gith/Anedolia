@@ -18,6 +18,7 @@
 
 import { IntroNarrativa } from "@/components/IntroNarrativa";
 import { WakeUpSequence } from "@/components/WakeUpSequence";
+import { EndGameSequence } from "@/components/EndGameSequence";
 import { Player3D } from "@/components/Player3D";
 import { CameraThirdPerson } from "@/components/CameraThirdPerson";
 import { ApartamentoComInteracao as Apartamento } from "@/components/interaction/ApartamentoComInteracao";
@@ -52,6 +53,14 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
   espelho: 0.25,
   quadro: 0.3,
 };
+
+// Objetos necessários para o final completo (excluindo o espelho que é o trigger)
+const REQUIRED_OBJECTS_FOR_COMPLETE_ENDING = [
+  'café',
+  'planta', 
+  'livros',
+  'quadro'
+];
 
 // === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
@@ -245,6 +254,8 @@ export default function Teste() {
   const [colorProgress, setColorProgress] = useState(0);
   const [gameState, setGameState] = useState<GameState>("intro");
   const [showWakeUpPrompt, setShowWakeUpPrompt] = useState(false);
+  const [showEndGame, setShowEndGame] = useState(false);
+  const [allInteractionsComplete, setAllInteractionsComplete] = useState(false);
 
   // Manages state transitions
   const handleIntroComplete = () => {
@@ -286,6 +297,22 @@ export default function Teste() {
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
       const { objeto } = e.detail;
+
+      // Detecta interação com o espelho e mostra sequência final
+      if (objeto === "espelho") {
+        // Verifica se todas as outras interações foram completadas
+        const allCompleted = REQUIRED_OBJECTS_FOR_COMPLETE_ENDING.every(
+          reqObject => interactedObjects.has(reqObject)
+        );
+        
+        console.log("🪞 Mirror interacted");
+        console.log(`   Interacted objects: ${Array.from(interactedObjects).join(', ')}`);
+        console.log(`   All interactions complete: ${allCompleted}`);
+        
+        setAllInteractionsComplete(allCompleted);
+        setShowEndGame(true);
+        return;
+      }
 
       if (!interactedObjects.has(objeto)) {
         const newInteractedObjects = new Set(interactedObjects);
@@ -456,6 +483,17 @@ export default function Teste() {
             }
           `}</style>
         </KeyboardControls>
+      )}
+
+      {/* === END GAME SEQUENCE (Mirror interaction) === */}
+      {showEndGame && (
+        <EndGameSequence 
+          allInteractionsComplete={allInteractionsComplete}
+          onClose={() => {
+            setShowEndGame(false);
+            console.log("🎮 End game sequence closed - back to gameplay");
+          }}
+        />
       )}
     </GenGemini>
   );

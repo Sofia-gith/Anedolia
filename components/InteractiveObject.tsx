@@ -44,12 +44,18 @@ export function InteractiveObject({
     if (onInteract) {
       onInteract(texto);
     }
-    // Dispatches custom event for external UI
-    window.dispatchEvent(
-      new CustomEvent("showGeminiText", {
-        detail: { objeto, texto },
-      }),
-    );
+    
+    // Para o espelho, não mostra a UI Gemini antiga
+    // A sequência final será controlada pelo page.tsx
+    if (objeto !== "espelho") {
+      // Dispatches custom event for external UI
+      window.dispatchEvent(
+        new CustomEvent("showGeminiText", {
+          detail: { objeto, texto },
+        }),
+      );
+    }
+    
     console.log(`✨ Interacted with ${objeto}:`, texto);
   };
 
