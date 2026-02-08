@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from "@react-three/rapier";
 import { InteractiveObject } from "./InteractiveObject";
+import { PictureFrame } from "./PictureFrame";
+import { Book } from "./Book";
 import * as THREE from 'three';
 
 export function Model(props) {
@@ -23,7 +25,22 @@ export function Model(props) {
       {/* OBJETOS INTERATIVOS */}
       {/* ===================================================== */}
 
-      {/* Livros na mesa de cabeceira */}
+      {/* 📚 LIVROS na mesa de cabeceira - AGORA VISÍVEIS! */}
+      {/* Primeiro livro (deitado) */}
+      <Book 
+        position={[4.00, 0.67, -4.10]}   // Posição na mesa de cabeceira
+        rotation={[0, Math.PI / 4, 0]}   // Levemente rotacionado
+        scale={0.08}                      // Tamanho ajustável
+      />
+      
+      {/* Segundo livro (empilhado) */}
+      <Book 
+        position={[4.20, 0.67, -4.10]}   // Levemente deslocado
+        rotation={[0, -Math.PI / 6, 0]}  // Rotação diferente
+        scale={0.07}                      // Um pouco menor
+      />
+      
+      {/* Área de interação dos livros */}
       <InteractiveObject
         objeto="livros"
         position={[3.65, 0.81, -3.76]}
@@ -37,10 +54,17 @@ export function Model(props) {
         interactionDistance={1.8}
       />
 
-      {/* Quadro na parede */}
+      {/* 🖼️ QUADRO NA PAREDE */}
+      <PictureFrame 
+        position={[3.90, 0.66, -7.0]}
+        rotation={[0, Math.PI, 0]}
+        scale={0.07}
+      />
+      
+      {/* Área de interação do quadro */}
       <InteractiveObject
         objeto="quadro"
-        position={[3.95, 0.6, -6.64]}
+        position={[3.95, 1.5, -6.64]}
         interactionDistance={2.0}
       />
 
