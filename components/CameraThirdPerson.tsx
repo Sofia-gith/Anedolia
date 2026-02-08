@@ -8,6 +8,8 @@
  * - yaw / pitch são ângulos controlados pelo mouse
  * - A cada frame calcula a posição ideal usando coordenadas esféricas
  *   ao redor do personagem
+ * - Raycast contra paredes: se a posição ideal está atrás de uma parede,
+ *   a câmera é puxada para frente do obstáculo (evita clipping)
  * - Lerp suave (delta-time independent) para seguir sem sacudir
  * - Durante zoom (interação) a câmera para — quem controla é o CameraZoom
  */
@@ -15,8 +17,12 @@
 
 import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { useRapier, interactionGroups } from "@react-three/rapier";
 import * as THREE from "three";
 import { useInteraction } from "./interaction/useInteraction";
+
+// Collision-group mask: camera ray tests only against group 0 (environment)
+const CAMERA_RAY_GROUPS = interactionGroups([0], [0]);
 
 interface CameraThirdPersonProps {
   targetPosition: THREE.Vector3;
@@ -30,6 +36,8 @@ interface CameraThirdPersonProps {
   lookAtSmoothing?: number;
   /** Velocidade de rotação do mouse */
   rotationSpeed?: number;
+  /** Margem mínima antes da parede (evita clipping no near plane) */
+  wallOffset?: number;
 }
 
 export function CameraThirdPerson({
@@ -39,8 +47,10 @@ export function CameraThirdPerson({
   positionSmoothing = 8,
   lookAtSmoothing = 12,
   rotationSpeed = 0.002,
+  wallOffset = 0.25,
 }: CameraThirdPersonProps) {
   const { camera, gl } = useThree();
+  const { world, rapier } = useRapier();
 
   // Ângulos de órbita ao redor do personagem
   const yaw = useRef(0);
@@ -54,6 +64,7 @@ export function CameraThirdPerson({
   // Vetores reutilizáveis (evita alocação por frame)
   const _idealPos = useRef(new THREE.Vector3());
   const _idealLook = useRef(new THREE.Vector3());
+  const _rayDir = useRef(new THREE.Vector3());
 
   // Não controla durante zoom de interação
   const zoomState = useInteraction((state) => state.zoomState);
@@ -115,6 +126,34 @@ export function CameraThirdPerson({
       targetPosition.y + lookAtHeight,
       targetPosition.z,
     );
+
+    // === RAYCAST ANTI-CLIPPING ===
+    // Lança raio do personagem até a posição ideal da câmera.
+    // Se bater numa parede, puxa a câmera para frente do obstáculo.
+    const rayDir = _rayDir.current.copy(idealPos).sub(idealLook);
+    const maxDist = rayDir.length();
+    if (maxDist > 0.01) {
+      rayDir.divideScalar(maxDist); // normaliza
+      const ray = new rapier.Ray(
+        { x: idealLook.x, y: idealLook.y, z: idealLook.z },
+        { x: rayDir.x, y: rayDir.y, z: rayDir.z },
+      );
+      const hit = world.castRay(
+        ray,
+        maxDist,
+        true,
+        undefined,
+        CAMERA_RAY_GROUPS,
+      );
+      if (hit !== null) {
+        const hitDist = hit.timeOfImpact;
+        // Puxa para antes da parede, respeitando wallOffset
+        const clampedDist = Math.max(hitDist - wallOffset, 0.1);
+        if (clampedDist < maxDist) {
+          idealPos.copy(idealLook).addScaledVector(rayDir, clampedDist);
+        }
+      }
+    }
 
     // === inicializa no primeiro frame ===
     if (!initialized.current) {
