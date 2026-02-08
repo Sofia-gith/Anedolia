@@ -257,6 +257,7 @@ export default function Teste() {
   const [showWakeUpPrompt, setShowWakeUpPrompt] = useState(false);
   const [showEndGame, setShowEndGame] = useState(false);
   const [allInteractionsComplete, setAllInteractionsComplete] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   // Manages state transitions
   const handleIntroComplete = () => {
@@ -268,7 +269,7 @@ export default function Teste() {
       setShowWakeUpPrompt(true);
     }, 1000);
 
-    // ❌ REMOVED: Automatic timer after 4 seconds
+
     // Player MUST press SPACE now!
   };
 
@@ -292,6 +293,18 @@ export default function Teste() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [gameState]);
+
+  // Hide instructions after 5 seconds when gameplay starts
+  useEffect(() => {
+    if (gameState === "playing") {
+      const timer = setTimeout(() => {
+        setShowInstructions(false);
+        console.log("📋 Instructions hidden after 5 seconds");
+      }, 5000); // 5 segundos
+
+      return () => clearTimeout(timer);
+    }
   }, [gameState]);
 
   // Interacted objects system
@@ -376,42 +389,6 @@ export default function Teste() {
               </Suspense>
             </Canvas>
 
-            {/* === ADJUSTMENT INSTRUCTIONS (TEMPORARY) === */}
-            {(gameState === "waking_up" || gameState === "standing_up") && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "20px",
-                  left: "20px",
-                  color: "white",
-                  fontFamily: "monospace",
-                  fontSize: "12px",
-                  background: "rgba(0,0,0,0.8)",
-                  padding: "15px",
-                  borderRadius: "5px",
-                  maxWidth: "350px",
-                }}
-              >
-                <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#4CAF50" }}>
-                  🔧 CAMERA ADJUSTMENT MODE
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>Arrows:</strong> Move camera (horizontal)
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>Q/E:</strong> Move camera up/down
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>1-4:</strong> Preset positions
-                </div>
-                <div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.7, borderTop: "1px solid #444", paddingTop: "8px" }}>
-                   See coordinates in console (F12)<br/>
-                   When you find ideal position, copy values<br/>
-                   Remove CameraPositionHelper after
-                </div>
-              </div>
-            )}
-
             {/* === PROMPT TO STAND UP === */}
             {showWakeUpPrompt && (
               <div
@@ -433,12 +410,12 @@ export default function Teste() {
                 <div style={{ marginBottom: "15px" }}>
                   Press <strong>SPACE</strong> to stand up
                 </div>
-                {/* ❌ REMOVED: "(or wait 3 seconds)" text */}
+        
               </div>
             )}
 
-            {/* === INSTRUCTIONS (only shows during gameplay) === */}
-            {gameState === "playing" && (
+            {/* === INSTRUCTIONS (fades out after 5 seconds) === */}
+            {gameState === "playing" && showInstructions && (
               <div
                 style={{
                   position: "absolute",
@@ -451,6 +428,8 @@ export default function Teste() {
                   padding: "10px",
                   borderRadius: "5px",
                   pointerEvents: "none",
+                  opacity: showInstructions ? 1 : 0,
+                  transition: "opacity 0.5s ease-out",
                 }}
               >
                 <div>
