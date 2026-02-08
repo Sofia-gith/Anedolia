@@ -27,23 +27,23 @@ export function Model(props) {
 
       {/* 📚 LIVROS na mesa de cabeceira - AGORA VISÍVEIS! */}
       {/* Primeiro livro (deitado) */}
-      <Book 
-        position={[4.00, 0.67, -4.10]}   // Posição na mesa de cabeceira
-        rotation={[0, Math.PI / 4, 0]}   // Levemente rotacionado
-        scale={0.08}                      // Tamanho ajustável
+      <Book
+        position={[4.0, 0.67, -4.1]} // Posição na mesa de cabeceira
+        rotation={[0, Math.PI / 4, 0]} // Levemente rotacionado
+        scale={0.08} // Tamanho ajustável
       />
-      
+
       {/* Segundo livro (empilhado) */}
-      <Book 
-        position={[4.20, 0.67, -4.10]}   // Levemente deslocado
-        rotation={[0, -Math.PI / 6, 0]}  // Rotação diferente
-        scale={0.07}                      // Um pouco menor
+      <Book
+        position={[4.2, 0.67, -4.1]} // Levemente deslocado
+        rotation={[0, -Math.PI / 6, 0]} // Rotação diferente
+        scale={0.07} // Um pouco menor
       />
-      
+
       {/* Área de interação dos livros */}
       <InteractiveObject
         objeto="livros"
-        position={[1.2, 1, -5.2]}
+        position={[3.65, 0.81, -3.76]}
         interactionDistance={1.3}
       />
 
@@ -56,12 +56,12 @@ export function Model(props) {
       />
 
       {/* 🖼️ QUADRO NA PAREDE */}
-      <PictureFrame 
-        position={[3.90, 0.66, -7.0]}
+      <PictureFrame
+        position={[3.9, 0.66, -7.0]}
         rotation={[0, Math.PI, 0]}
         scale={0.07}
       />
-      
+
       {/* Área de interação do quadro */}
       <InteractiveObject
         objeto="quadro"
