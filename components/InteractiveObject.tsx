@@ -4,14 +4,43 @@ import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
 
 /**
- * Default texts for each interactive object
+ * Hook para reproduzir som de interação
+ */
+function useInteractionAudio(audioPath: string) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(audioPath);
+    audioRef.current.volume = 0.5; // Volume ajustável (0.0 a 1.0)
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [audioPath]);
+
+  const play = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0; // Reinicia o áudio
+      audioRef.current.play().catch((error) => {
+        console.warn("Erro ao reproduzir áudio:", error);
+      });
+    }
+  };
+
+  return { play };
+}
+
+/**
+ * Textos padrão para cada objeto interativo
  */
 const OBJECT_TEXTS: Record<string, string> = {
-  livros: "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  café: "The coffee machine. Another day, another coffee. The routine continues.",
-  quadro: "An abstract painting on the wall. Does it mean anything?",
-  planta: "A green plant. At least it's still alive, unlike my motivation.",
-  espelho: "My reflection stares back at me. Do I still recognize myself?",
+  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
+  frame: "An abstract painting on the wall. Does it mean anything?",
+  plant: "A green plant. At least it's still alive, unlike my motivation.",
+  mirror: "My reflection stares back at me. Do I still recognize myself?",
 };
 
 /**
@@ -27,20 +56,28 @@ export function InteractiveObject({
   interactionDistance = 2.5,
   children,
   onInteract,
+  audioPath, // Som opcional
 }: {
   objeto: string;
   position?: [number, number, number];
   interactionDistance?: number;
   children?: React.ReactNode;
   onInteract?: (texto: string) => void;
+  audioPath?: string; // Caminho opcional para som customizado
 }) {
   const texto = OBJECT_TEXTS[objeto] || `You examine the ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
   const interactCooldown = 500;
+  const { play: playAudio } = useInteractionAudio(audioPath || "");
 
   const handleInteraction = () => {
+    // Reproduz o áudio se fornecido
+    if (audioPath) {
+      playAudio();
+    }
+
     if (onInteract) {
       onInteract(texto);
     }
