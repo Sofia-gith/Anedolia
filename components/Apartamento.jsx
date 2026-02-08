@@ -24,19 +24,23 @@ export function Model(props) {
       {/* OBJETOS INTERATIVOS */}
       {/* ===================================================== */}
 
-      {/* 📚 LIVROS na mesa de cabeceira - AGORA VISÍVEIS! */}
+     
       {/* Primeiro livro (deitado) */}
-      <Book
-        position={[4.0, 0.67, -4.1]} // Posição na mesa de cabeceira
-        rotation={[0, Math.PI / 4, 0]} // Levemente rotacionado
-        scale={0.08} // Tamanho ajustável
+
+      <Book 
+        position={[4.00, 0.67, -4.10]} 
+        rotation={[0, Math.PI / 4, 0]}   
+        scale={0.08}                     
+
       />
 
       {/* Segundo livro (empilhado) */}
-      <Book
-        position={[4.2, 0.67, -4.1]} // Levemente deslocado
-        rotation={[0, -Math.PI / 6, 0]} // Rotação diferente
-        scale={0.07} // Um pouco menor
+
+      <Book 
+        position={[4.20, 0.67, -4.10]}  
+        rotation={[0, -Math.PI / 6, 0]}  
+        scale={0.07}                
+
       />
 
       {/* Área de interação dos livros */}
@@ -55,9 +59,10 @@ export function Model(props) {
         audioPath="/songs/water_song.mp3"
       />
 
-      {/* 🖼️ QUADRO NA PAREDE */}
-      <PictureFrame
-        position={[3.9, 0.66, -7.0]}
+
+      {/* QUADRO NA PAREDE */}
+      <PictureFrame 
+        position={[3.90, 0.66, -7.0]}
         rotation={[0, Math.PI, 0]}
         scale={0.07}
       />
@@ -69,7 +74,7 @@ export function Model(props) {
         interactionDistance={2.0}
       />
 
-      {/* 🌿 PLANTA ao lado da TV */}
+      {/* PLANTA ao lado da TV */}
       <InteractiveObject
         objeto="plant"
         position={[-1.5, 0.72, -8.0]}
