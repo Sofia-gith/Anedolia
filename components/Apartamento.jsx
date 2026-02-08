@@ -24,11 +24,11 @@ export function Model(props) {
       {/* ===================================================== */}
 
       {/* Livros na mesa de cabeceira */}
-      <InteractiveObject
+      {/* <InteractiveObject
         objeto="livros"
-        position={[3.65, 0.81, -3.76]}
+        position={[1.2, 1, -5.2]}
         interactionDistance={1.3}
-      />
+      /> */}
 
       {/* Máquina de café */}
       <InteractiveObject
@@ -47,7 +47,7 @@ export function Model(props) {
       {/* 🌿 PLANTA ao lado da TV */}
       <InteractiveObject
         objeto="planta"
-        position={[-1.5, 0.72, -8.0]} 
+        position={[-1.5, 0.72, -8.0]}
         interactionDistance={2.0}
       />
 
@@ -56,9 +56,8 @@ export function Model(props) {
         position={[4.0, 1.2, -0.5]}
         interactionDistance={1.8}
       />
-
     </group>
-  )
+  );
 }
 
 useGLTF.preload('/apartamento.glb')
