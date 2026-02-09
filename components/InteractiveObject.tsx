@@ -4,12 +4,44 @@ import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
 
 /**
+ * Hook to play interaction audio
+ */
+function useInteractionAudio(audioPath: string) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!audioPath) return;
+    audioRef.current = new Audio(audioPath);
+    audioRef.current.volume = 0.5;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [audioPath]);
+
+  const play = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((error) => {
+        console.warn("Error playing audio:", error);
+      });
+    }
+  };
+
+  return { play };
+}
+
+/**
  * Default texts for each interactive object
  * Supports both English and Portuguese names
  */
 const OBJECT_TEXTS: Record<string, string> = {
-  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
+  books:
+    "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee:
+    "The coffee machine. Another day, another coffee. The routine continues.",
   frame: "An abstract painting on the wall. Does it mean anything?",
   plant: "A green plant. At least it's still alive, unlike my motivation.",
   mirror: "My reflection stares back at me. Do I still recognize myself?",
@@ -40,27 +72,43 @@ export function InteractiveObject({
   interactionDistance = 2.5,
   children,
   onInteract,
+  audioPath,
 }: {
   objeto: string;
   position?: [number, number, number];
   interactionDistance?: number;
   children?: React.ReactNode;
   onInteract?: (texto: string) => void;
+  audioPath?: string;
 }) {
   // Convert English name to Portuguese (canonical) if needed
   const canonicalName = NAME_MAPPING[objeto] || objeto;
-  
-  const texto = OBJECT_TEXTS[objeto] || OBJECT_TEXTS[canonicalName] || `You examine the ${objeto}.`;
+
+  const texto =
+    OBJECT_TEXTS[objeto] ||
+    OBJECT_TEXTS[canonicalName] ||
+    `You examine the ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
+  const isInteractingRef = useRef(false);
   const lastInteractTime = useRef(0);
   const interactCooldown = 500;
+  const { play: playAudio } = useInteractionAudio(audioPath || "");
 
   const handleInteraction = () => {
+    // Toggle interaction state: only play audio when opening, not closing
+    const isOpening = !isInteractingRef.current;
+    isInteractingRef.current = isOpening;
+
+    // Play audio only on the first press (opening interaction)
+    if (isOpening && audioPath) {
+      playAudio();
+    }
+
     if (onInteract) {
       onInteract(texto);
     }
-    
+
     // Dispatches event to page.tsx (used for progress and mirror)
     // ALWAYS uses canonical Portuguese name for consistency
     window.dispatchEvent(
@@ -68,7 +116,7 @@ export function InteractiveObject({
         detail: { objeto: canonicalName },
       }),
     );
-    
+
     // For mirror, don't show old Gemini UI
     // The final sequence will be controlled by page.tsx
     if (canonicalName !== "espelho") {
@@ -79,14 +127,17 @@ export function InteractiveObject({
         }),
       );
     }
-    
-    console.log(`✨ Interacted with ${objeto} (canonical: ${canonicalName}):`, texto);
+
+    console.log(
+      `✨ Interacted with ${objeto} (canonical: ${canonicalName}):`,
+      texto,
+    );
   };
 
   // Detects proximity every frame using PLAYER POSITION
   useFrame(() => {
     // Gets current player position from global store
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerPos = (window as any).__playerPosition || [0, 0, 0];
     const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
@@ -96,6 +147,10 @@ export function InteractiveObject({
 
     if (nearby !== isNearby) {
       setIsNearby(nearby);
+      // Reset interaction state when player walks away
+      if (!nearby) {
+        isInteractingRef.current = false;
+      }
     }
   });
 
@@ -125,7 +180,8 @@ export function InteractiveObject({
         new CustomEvent("objectNearby", {
           detail: {
             objeto: canonicalName,
-            name: canonicalName.charAt(0).toUpperCase() + canonicalName.slice(1),
+            name:
+              canonicalName.charAt(0).toUpperCase() + canonicalName.slice(1),
           },
         }),
       );
