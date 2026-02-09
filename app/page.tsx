@@ -329,6 +329,20 @@ export default function Teste() {
     }, stepDuration);
   }, []);
 
+  // === END BACKGROUND AUDIO ===
+  const endAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playEndAudio = useCallback(() => {
+    if (endAudioRef.current) return;
+    const audio = new Audio("/songs/end_bg_song.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    endAudioRef.current = audio;
+    audio.play().catch((err) => {
+      console.warn("🎵 End audio autoplay blocked:", err);
+    });
+  }, []);
+
   // Manages state transitions
   const handleIntroComplete = () => {
     console.log("📖 Narrative intro complete");
@@ -383,6 +397,11 @@ export default function Teste() {
         rainAudioRef.current.src = "";
         rainAudioRef.current = null;
       }
+      if (endAudioRef.current) {
+        endAudioRef.current.pause();
+        endAudioRef.current.src = "";
+        endAudioRef.current = null;
+      }
     };
   }, []);
 
@@ -436,6 +455,10 @@ export default function Teste() {
         // Fade out rain audio on final mirror interaction (all objects completed)
         if (allCompleted) {
           fadeOutRainAudio();
+          // Play end song after rain fades out (2 seconds)
+          setTimeout(() => {
+            playEndAudio();
+          }, 2000);
         }
 
         setAllInteractionsComplete(allCompleted);
