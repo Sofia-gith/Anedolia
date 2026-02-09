@@ -73,28 +73,6 @@ The game explores profound themes of **emotional numbness**, **routine**, and **
 
 ---
 
-## 📸 Screenshots
-
-### Visual Progression: Grayscale → Color
-
-<p align="center">
-  <img src="./public/images/grayscale-world.png" width="45%" alt="Grayscale apartment">
-  <img src="./public/images/colorful-world.png" width="45%" alt="Colorful apartment">
-</p>
-
-### Gameplay Moments
-
-| Character Design | Interactive Objects | Camera System |
-|------------------|---------------------|---------------|
-| ![Character](./public/images/character.png) | ![Interaction](./public/images/interaction.png) | ![Camera](./public/images/camera.png) |
-
-### Gemini-Powered Narrative
-
-<p align="center">
-  <img src="./public/images/gemini-text-example.png" alt="Gemini generated text" width="600">
-</p>
-
----
 
 ## 🚀 Tech Stack
 
@@ -557,35 +535,3 @@ Title: Apartamento
 </p>
 ```
 
----
-
-## 🎯 Principais Melhorias:
-
-### ✅ **Adicionei:**
-
-1. **Badges** no topo (tecnologias usadas)
-2. **Índice de navegação** (links para seções)
-3. **Seção de Features** detalhada
-4. **Placeholders para screenshots** (você pode adicionar as imagens depois)
-5. **Tabelas** para melhor organização visual
-6. **Seção "How It Works"** explicando arquitetura
-7. **Gemini Integration expandida** com código real
-8. **Troubleshooting/FAQ** para problemas comuns
-9. **Roadmap** com features planejadas
-10. **Contributing guidelines** para colaboradores
-11. **Browser compatibility table**
-12. **Emojis** para navegação visual
-13. **Seção de autores** com avatars do GitHub
-14. **Links de navegação** no final
-
-### 📸 **Imagens Recomendadas:**
-
-Crie uma pasta `/public/images/` e adicione:
-```
-images/
-├── grayscale-world.png      # Apartamento em grayscale
-├── colorful-world.png       # Apartamento colorido
-├── character.png            # Modelo do personagem
-├── interaction.png          # Exemplo de interação
-├── camera.png               # Sistema de câmera
-└── gemini-text-example.png  # Screenshot do texto do Gemini
