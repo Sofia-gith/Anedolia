@@ -22,12 +22,10 @@ export async function GET() {
     const ai = new GoogleGenAI({ apiKey });
     console.log("✓ GoogleGenAI criado");
     
-    // Lista de modelos Gemini 2.x disponíveis (em ordem de preferência)
     const modelsToTry = [
-      "gemini-2.0-flash-exp",      // Modelo Gemini 2.0 experimental
-      "gemini-2.5-flash",           // Modelo Gemini 2.5 Flash
-      "gemini-1.5-flash-latest",    // Fallback para 1.5
-      "gemini-1.5-pro-latest",      // Fallback para 1.5 Pro
+      "gemini-3-pro-preview",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash",
     ];
     
     let responseText = null;
