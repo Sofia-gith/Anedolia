@@ -68,6 +68,7 @@ export function Model(props) {
         objeto="frame"
         position={[3.95, 1.5, -6.64]}
         interactionDistance={2.0}
+        audioPath="/songs/frame_song.mp3"
       />
 
       {/* PLANTA ao lado da TV */}
