@@ -7,11 +7,11 @@ import { Vector3 } from "three";
  * Default texts for each interactive object
  */
 const OBJECT_TEXTS: Record<string, string> = {
-  livros: "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  café: "The coffee machine. Another day, another coffee. The routine continues.",
-  quadro: "An abstract painting on the wall. Does it mean anything?",
-  planta: "A green plant. At least it's still alive, unlike my motivation.",
-  espelho: "My reflection stares back at me. Do I still recognize myself?",
+  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
+  frame: "An abstract painting on the wall. Does it mean anything?",
+  plant: "A green plant. At least it's still alive, unlike my motivation.",
+  mirror: "My reflection stares back at me. Do I still recognize myself?",
 };
 
 /**

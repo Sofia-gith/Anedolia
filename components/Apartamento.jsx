@@ -42,14 +42,14 @@ export function Model(props) {
       
       {/* Área de interação dos livros */}
       <InteractiveObject
-        objeto="livros"
+        objeto="books"
         position={[3.65, 0.81, -3.76]}
         interactionDistance={1.3}
       />
 
       {/* Máquina de café */}
       <InteractiveObject
-        objeto="café"
+        objeto="coffee"
         position={[-1.78, 0.91, 0.9]}
         interactionDistance={1.8}
       />
@@ -63,20 +63,20 @@ export function Model(props) {
       
       {/* Área de interação do quadro */}
       <InteractiveObject
-        objeto="quadro"
+        objeto="frame"
         position={[3.95, 1.5, -6.64]}
         interactionDistance={2.0}
       />
 
       {/* 🌿 PLANTA ao lado da TV */}
       <InteractiveObject
-        objeto="planta"
+        objeto="plant"
         position={[-1.5, 0.72, -8.0]} 
         interactionDistance={2.0}
       />
 
       <InteractiveObject
-        objeto="espelho"
+        objeto="mirror"
         position={[4.0, 1.2, -0.5]}
         interactionDistance={1.8}
       />
