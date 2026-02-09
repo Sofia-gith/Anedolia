@@ -524,6 +524,59 @@ Title: Apartamento
 
 ---
 
+
+##simplified diagram(ASCII)
+
+┌─────────────────────────────────────────────────────────────┐
+│                         Page.tsx                             │
+│  ┌────────────┐  ┌──────────────┐  ┌──────────────────┐    │
+│  │ GameState  │  │ ColorProgress│  │ InteractedObjects│    │
+│  └────────────┘  └──────────────┘  └──────────────────┘    │
+└─────────────────────┬───────────────────────────────────────┘
+│
+┌─────────────┼─────────────┐
+│             │             │
+▼             ▼             ▼
+┌──────────────┐ ┌────────┐ ┌─────────────┐
+│ IntroNarra   │ │ Scene  │ │ GenGemini   │
+│  tiva        │ │        │ │ (Context)   │
+└──────────────┘ └────┬───┘ └──────┬──────┘
+│            │
+┌─────────────┼────────┐   │
+│             │        │   │
+▼             ▼        ▼   ▼
+┌──────────────┐ ┌────────────────────┐ ┌─────────────┐
+│ Player3D     │ │ Apartamento        │ │ Gemini      │
+│              │ │                    │ │ TextDisplay │
+│ ┌──────────┐ │ │ ┌────────────────┐│ └─────────────┘
+│ │AnimState │ │ │ │Interactive     ││
+│ └──────────┘ │ │ │Object (x5)     ││
+└──────┬───────┘ │ └────────┬───────┘│
+│         └──────────┼────────┘
+│                    │
+└────────┬───────────┘
+│
+▼
+┌───────────────┐
+│ Interaction   │
+│ Store         │
+│ (Zustand)     │
+│               │
+│ ┌───────────┐ │
+│ │ZoomState  │ │
+│ └───────────┘ │
+└───────┬───────┘
+│
+┌───────────┼───────────┐
+▼           ▼           ▼
+┌────────┐ ┌─────────┐ ┌──────────┐
+│Camera  │ │Camera   │ │Anedolia  │
+│Third   │ │Zoom     │ │Effects   │
+│Person  │ │         │ │          │
+└────────┘ └─────────┘ └──────────┘
+
+----
+
 <p align="center">
   <strong>Built with ❤️ for the Google Gemini API Developer Competition</strong>
 </p>
@@ -533,5 +586,3 @@ Title: Apartamento
   <a href="https://github.com/Sofia-gith/Anedolia/issues">🐛 Report Bug</a> •
   <a href="https://github.com/Sofia-gith/Anedolia/issues">💡 Request Feature</a>
 </p>
-```
-
