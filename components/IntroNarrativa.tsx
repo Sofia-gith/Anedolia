@@ -49,6 +49,8 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
     },
   ];
 
+  const slide = slides[slideAtual];
+
   // Controls initial fade in
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,8 +60,23 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
     return () => clearTimeout(timer);
   }, [slideAtual]);
 
-  // ❌ REMOVED: Automatic advance after duration
-  // Now player MUST press SPACE to continue
+   const avancarSlide = () => {
+     if (!podeAvancar) return;
+
+     setPodeAvancar(false);
+     setFadeState("out");
+
+     setTimeout(() => {
+       if (slideAtual < slides.length - 1) {
+         // Next slide
+         setSlideAtual(slideAtual + 1);
+         setFadeState("in");
+       } else {
+         // Intro finished
+         onComplete();
+       }
+     }, 800); // Fade out duration
+   };
 
   // Listener for SPACE key
   useEffect(() => {
@@ -74,25 +91,7 @@ export function IntroNarrativa({ onComplete }: IntroNarrativaProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [podeAvancar, slideAtual]);
 
-  const avancarSlide = () => {
-    if (!podeAvancar) return;
-    
-    setPodeAvancar(false);
-    setFadeState('out');
-
-    setTimeout(() => {
-      if (slideAtual < slides.length - 1) {
-        // Next slide
-        setSlideAtual(slideAtual + 1);
-        setFadeState('in');
-      } else {
-        // Intro finished
-        onComplete();
-      }
-    }, 800); // Fade out duration
-  };
-
-  const slide = slides[slideAtual];
+  
 
   return (
     <div

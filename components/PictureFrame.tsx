@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
 import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
 
 interface PictureFrameProps {
   position?: [number, number, number];
@@ -20,6 +19,7 @@ export function PictureFrame({
   const clonedScene = scene.clone();
 
   // Configura materiais (opcional - ajuste se necessário)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   clonedScene.traverse((node: any) => {
     if (node.isMesh) {
       node.castShadow = true;

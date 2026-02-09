@@ -22,6 +22,7 @@ import {
   RigidBody,
   CapsuleCollider,
   RapierRigidBody,
+  interactionGroups,
 } from "@react-three/rapier";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
@@ -519,8 +520,12 @@ export function Player3D({
       restitution={0}
       linearDamping={0.5}
     >
-      {/* Collider */}
-      <CapsuleCollider args={[0.2, 0.3]} position={[0, 0.4, 0]} />
+      {/* Collider — group 1 (player), interacts with group 0 (environment) */}
+      <CapsuleCollider
+        args={[0.2, 0.3]}
+        position={[0, 0.4, 0]}
+        collisionGroups={interactionGroups([1], [0])}
+      />
 
       {/* Grupo de rotação */}
       <group rotation={[0, rotation, 0]}>

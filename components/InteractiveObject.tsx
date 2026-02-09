@@ -5,6 +5,7 @@ import { Vector3 } from "three";
 
 /**
  * Default texts for each interactive object
+ * Supports both English and Portuguese names
  */
 const OBJECT_TEXTS: Record<string, string> = {
   books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
@@ -15,11 +16,23 @@ const OBJECT_TEXTS: Record<string, string> = {
 };
 
 /**
+ * Map English names to Portuguese (canonical) names
+ */
+const NAME_MAPPING: Record<string, string> = {
+  books: "books",
+  coffee: "coffee",
+  frame: "frame",
+  plant: "plant",
+  mirror: "mirror",
+};
+
+/**
  * Wrapper component for 3D objects that trigger texts with E key (proximity)
  * Simplified version without Gemini dependency
  *
  * Usage:
  * <InteractiveObject objeto="café" position={[x, y, z]} />
+ * <InteractiveObject objeto="coffee" position={[x, y, z]} /> // Also works!
  */
 export function InteractiveObject({
   objeto,
@@ -34,7 +47,10 @@ export function InteractiveObject({
   children?: React.ReactNode;
   onInteract?: (texto: string) => void;
 }) {
-  const texto = OBJECT_TEXTS[objeto] || `You examine the ${objeto}.`;
+  // Convert English name to Portuguese (canonical) if needed
+  const canonicalName = NAME_MAPPING[objeto] || objeto;
+  
+  const texto = OBJECT_TEXTS[objeto] || OBJECT_TEXTS[canonicalName] || `You examine the ${objeto}.`;
   const objectPosition = useRef(new Vector3(...position));
   const [isNearby, setIsNearby] = useState(false);
   const lastInteractTime = useRef(0);
@@ -44,13 +60,27 @@ export function InteractiveObject({
     if (onInteract) {
       onInteract(texto);
     }
-    // Dispatches custom event for external UI
+    
+    // Dispatches event to page.tsx (used for progress and mirror)
+    // ALWAYS uses canonical Portuguese name for consistency
     window.dispatchEvent(
-      new CustomEvent("showGeminiText", {
-        detail: { objeto, texto },
+      new CustomEvent("objectInteracted", {
+        detail: { objeto: canonicalName },
       }),
     );
-    console.log(`✨ Interacted with ${objeto}:`, texto);
+    
+    // For mirror, don't show old Gemini UI
+    // The final sequence will be controlled by page.tsx
+    if (canonicalName !== "espelho") {
+      // Dispatches custom event for external UI
+      window.dispatchEvent(
+        new CustomEvent("showGeminiText", {
+          detail: { objeto: canonicalName, texto },
+        }),
+      );
+    }
+    
+    console.log(`✨ Interacted with ${objeto} (canonical: ${canonicalName}):`, texto);
   };
 
   // Detects proximity every frame using PLAYER POSITION
@@ -94,19 +124,19 @@ export function InteractiveObject({
       window.dispatchEvent(
         new CustomEvent("objectNearby", {
           detail: {
-            objeto,
-            name: objeto.charAt(0).toUpperCase() + objeto.slice(1),
+            objeto: canonicalName,
+            name: canonicalName.charAt(0).toUpperCase() + canonicalName.slice(1),
           },
         }),
       );
     } else {
       window.dispatchEvent(
         new CustomEvent("objectFar", {
-          detail: { objeto },
+          detail: { objeto: canonicalName },
         }),
       );
     }
-  }, [isNearby, objeto]);
+  }, [isNearby, canonicalName]);
 
   return <group position={position}>{children}</group>;
 }

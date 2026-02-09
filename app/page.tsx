@@ -18,6 +18,7 @@
 
 import { IntroNarrativa } from "@/components/IntroNarrativa";
 import { WakeUpSequence } from "@/components/WakeUpSequence";
+import { EndGameSequence } from "@/components/EndGameSequence";
 import { Player3D } from "@/components/Player3D";
 import { CameraThirdPerson } from "@/components/CameraThirdPerson";
 import { ApartamentoComInteracao as Apartamento } from "@/components/interaction/ApartamentoComInteracao";
@@ -52,6 +53,14 @@ const OBJECT_COLOR_VALUES: Record<string, number> = {
   espelho: 0.25,
   quadro: 0.3,
 };
+
+// Objetos necessários para o final completo (excluindo o espelho que é o trigger)
+const REQUIRED_OBJECTS_FOR_COMPLETE_ENDING = [
+  'café',
+  'planta', 
+  'livros',
+  'quadro'
+];
 
 // === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
@@ -213,7 +222,8 @@ function Scene({
             targetPosition={playerPosition}
             distance={1.8}
             lookAtHeight={0.8}
-            smoothness={0.1}
+            positionSmoothing={8}
+            lookAtSmoothing={12}
             rotationSpeed={0.002}
           />
         )}
@@ -245,6 +255,9 @@ export default function Teste() {
   const [colorProgress, setColorProgress] = useState(0);
   const [gameState, setGameState] = useState<GameState>("intro");
   const [showWakeUpPrompt, setShowWakeUpPrompt] = useState(false);
+  const [showEndGame, setShowEndGame] = useState(false);
+  const [allInteractionsComplete, setAllInteractionsComplete] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   // Manages state transitions
   const handleIntroComplete = () => {
@@ -256,7 +269,6 @@ export default function Teste() {
       setShowWakeUpPrompt(true);
     }, 1000);
 
-    // ❌ REMOVED: Automatic timer after 4 seconds
     // Player MUST press SPACE now!
   };
 
@@ -282,10 +294,38 @@ export default function Teste() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameState]);
 
+  // Hide instructions after 5 seconds when gameplay starts
+  useEffect(() => {
+    if (gameState === "playing") {
+      const timer = setTimeout(() => {
+        setShowInstructions(false);
+        console.log("📋 Instructions hidden after 5 seconds");
+      }, 5000); // 5 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState]);
+
   // Interacted objects system
   useEffect(() => {
     const handleObjectInteracted = (e: CustomEvent) => {
       const { objeto } = e.detail;
+
+      // Detecta interação com o espelho e mostra sequência final
+      if (objeto === "espelho") {
+        // Verifica se todas as outras interações foram completadas
+        const allCompleted = REQUIRED_OBJECTS_FOR_COMPLETE_ENDING.every(
+          reqObject => interactedObjects.has(reqObject)
+        );
+        
+        console.log("🪞 Mirror interacted");
+        console.log(`   Interacted objects: ${Array.from(interactedObjects).join(', ')}`);
+        console.log(`   All interactions complete: ${allCompleted}`);
+        
+        setAllInteractionsComplete(allCompleted);
+        setShowEndGame(true);
+        return;
+      }
 
       if (!interactedObjects.has(objeto)) {
         const newInteractedObjects = new Set(interactedObjects);
@@ -348,42 +388,6 @@ export default function Teste() {
               </Suspense>
             </Canvas>
 
-            {/* === ADJUSTMENT INSTRUCTIONS (TEMPORARY) === */}
-            {(gameState === "waking_up" || gameState === "standing_up") && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "20px",
-                  left: "20px",
-                  color: "white",
-                  fontFamily: "monospace",
-                  fontSize: "12px",
-                  background: "rgba(0,0,0,0.8)",
-                  padding: "15px",
-                  borderRadius: "5px",
-                  maxWidth: "350px",
-                }}
-              >
-                <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#4CAF50" }}>
-                  🔧 CAMERA ADJUSTMENT MODE
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>Arrows:</strong> Move camera (horizontal)
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>Q/E:</strong> Move camera up/down
-                </div>
-                <div style={{ marginBottom: "5px" }}>
-                  <strong>1-4:</strong> Preset positions
-                </div>
-                <div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.7, borderTop: "1px solid #444", paddingTop: "8px" }}>
-                  📍 See coordinates in console (F12)<br/>
-                  🎯 When you find ideal position, copy values<br/>
-                  ❌ Remove CameraPositionHelper after
-                </div>
-              </div>
-            )}
-
             {/* === PROMPT TO STAND UP === */}
             {showWakeUpPrompt && (
               <div
@@ -409,8 +413,8 @@ export default function Teste() {
               </div>
             )}
 
-            {/* === INSTRUCTIONS (only shows during gameplay) === */}
-            {gameState === "playing" && (
+            {/* === INSTRUCTIONS (fades out after 5 seconds) === */}
+            {gameState === "playing" && showInstructions && (
               <div
                 style={{
                   position: "absolute",
@@ -423,6 +427,8 @@ export default function Teste() {
                   padding: "10px",
                   borderRadius: "5px",
                   pointerEvents: "none",
+                  opacity: showInstructions ? 1 : 0,
+                  transition: "opacity 0.5s ease-out",
                 }}
               >
                 <div>
@@ -456,6 +462,17 @@ export default function Teste() {
             }
           `}</style>
         </KeyboardControls>
+      )}
+
+      {/* === END GAME SEQUENCE (Mirror interaction) === */}
+      {showEndGame && (
+        <EndGameSequence 
+          allInteractionsComplete={allInteractionsComplete}
+          onClose={() => {
+            setShowEndGame(false);
+            console.log("🎮 End game sequence closed - back to gameplay");
+          }}
+        />
       )}
     </GenGemini>
   );
