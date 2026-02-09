@@ -119,7 +119,7 @@ export function InteractiveObject({
 
     // For mirror, don't show old Gemini UI
     // The final sequence will be controlled by page.tsx
-    if (canonicalName !== "espelho") {
+    if (canonicalName !== "espelho" && canonicalName !== "mirror") {
       // Dispatches custom event for external UI
       window.dispatchEvent(
         new CustomEvent("showGeminiText", {

@@ -27,6 +27,9 @@ export function GeminiTextDisplay() {
       );
     }
 
+    // Signal that the interaction modal was dismissed (for background audio resume)
+    window.dispatchEvent(new CustomEvent("interactionDismissed"));
+
     setCurrentText(null);
 
     // Clear modal flag after a short delay so the same E keypress

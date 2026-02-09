@@ -6,7 +6,7 @@
  * 2. Character sitting on bed
  * 3. Stand up animation (SPACE key ONLY - NO automatic timer)
  * 4. Normal gameplay
- * 
+ *
  * CHANGES FOR HACKATHON:
  * - Removed 3-second automatic timer
  * - Player MUST press SPACE to stand up
@@ -30,7 +30,7 @@ import GenGemini from "@/components/GenGemini";
 import { Environment, KeyboardControls } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
 
 /**
@@ -47,31 +47,31 @@ const map = [
 
 // Color progress per object
 const OBJECT_COLOR_VALUES: Record<string, number> = {
-  café: 0.1,
-  planta: 0.15,
-  livros: 0.2,
-  espelho: 0.25,
-  quadro: 0.3,
+  coffee: 0.1,
+  plant: 0.15,
+  books: 0.2,
+  mirror: 0.25,
+  frame: 0.3,
 };
 
 // Objetos necessários para o final completo (excluindo o espelho que é o trigger)
 const REQUIRED_OBJECTS_FOR_COMPLETE_ENDING = [
-  'café',
-  'planta', 
-  'livros',
-  'quadro'
+  "coffee",
+  "plant",
+  "books",
+  "frame",
 ];
 
 // === BED POSITION (based on apartment model) ===
 const BED_POSITION: [number, number, number] = [3.0, 1.0, -4.8];
-const BED_ROTATION = 0; 
+const BED_ROTATION = 0;
 const characterOffset = -0.45;
 
 // === INITIAL PLAYER POSITION (in front of bed after standing up) ===
 const PLAYER_SPAWN_POSITION: [number, number, number] = [
-  BED_POSITION[0],           // Same X as bed
-  BED_POSITION[1],           // Same height
-  BED_POSITION[2] + 0.8,     // Slightly in front of bed
+  BED_POSITION[0], // Same X as bed
+  BED_POSITION[1], // Same height
+  BED_POSITION[2] + 0.8, // Slightly in front of bed
 ];
 
 // === INITIAL PLAYER ROTATION (facing forward) ===
@@ -83,25 +83,25 @@ const PLAYER_INITIAL_ROTATION = Math.PI * 1.5; // Adjust based on model orientat
 
 // === CAMERA POSITION DURING WAKE UP ===
 const WAKEUP_CAMERA_POSITION: [number, number, number] = [
-  2.5,   // X - More to the side
-  1.4,   // Y - Medium height
-  -3.5,  // Z - Closer
+  2.5, // X - More to the side
+  1.4, // Y - Medium height
+  -3.5, // Z - Closer
 ];
 
 const WAKEUP_CAMERA_LOOKAT: [number, number, number] = [
-  3.0,   // X - Center of bed
-  0.8,   // Y - Height 
-  -5.0,  // Z - Depth
+  3.0, // X - Center of bed
+  0.8, // Y - Height
+  -5.0, // Z - Depth
 ];
 
 /**
  * Game states
  */
-type GameState = 
-  | "intro"           // Showing narrative intro
-  | "waking_up"       // Character on bed, about to stand
-  | "standing_up"     // Standing animation
-  | "playing";        // Normal gameplay
+type GameState =
+  | "intro" // Showing narrative intro
+  | "waking_up" // Character on bed, about to stand
+  | "standing_up" // Standing animation
+  | "playing"; // Normal gameplay
 
 /**
  * CAMERA POSITION HELPER - ADJUSTMENT COMPONENT
@@ -121,38 +121,63 @@ function CameraPositionHelper() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevents conflict with "Space to stand" prompt
       if (e.code === "Space") return;
-      
+
       const newPos = { ...cameraPos };
 
       switch (e.key) {
-        case "ArrowLeft": newPos.x -= step; break;
-        case "ArrowRight": newPos.x += step; break;
-        case "ArrowUp": newPos.z -= step; break;
-        case "ArrowDown": newPos.z += step; break;
-        case "q": case "Q": newPos.y += step; break;
-        case "e": case "E": newPos.y -= step; break;
-        
+        case "ArrowLeft":
+          newPos.x -= step;
+          break;
+        case "ArrowRight":
+          newPos.x += step;
+          break;
+        case "ArrowUp":
+          newPos.z -= step;
+          break;
+        case "ArrowDown":
+          newPos.z += step;
+          break;
+        case "q":
+        case "Q":
+          newPos.y += step;
+          break;
+        case "e":
+        case "E":
+          newPos.y -= step;
+          break;
+
         // Useful presets to find ideal angle
         case "1": // More left view (corrected default)
-          newPos.x = 0.5; newPos.y = 1.8; newPos.z = -2.5;
+          newPos.x = 0.5;
+          newPos.y = 1.8;
+          newPos.z = -2.5;
           break;
         case "2": // More central view
-          newPos.x = 1.5; newPos.y = 1.7; newPos.z = -2.5;
+          newPos.x = 1.5;
+          newPos.y = 1.7;
+          newPos.z = -2.5;
           break;
         case "3": // Right side view
-          newPos.x = 5.0; newPos.y = 1.6; newPos.z = -5.0;
+          newPos.x = 5.0;
+          newPos.y = 1.6;
+          newPos.z = -5.0;
           break;
         case "4": // Top view (aerial)
-          newPos.x = 3.0; newPos.y = 4.0; newPos.z = -5.0;
+          newPos.x = 3.0;
+          newPos.y = 4.0;
+          newPos.z = -5.0;
           break;
-        default: return;
+        default:
+          return;
       }
 
       setCameraPos(newPos);
       camera.position.set(newPos.x, newPos.y, newPos.z);
       camera.lookAt(BED_POSITION[0], BED_POSITION[1] + 0.7, BED_POSITION[2]);
-      
-      console.log(`📷 Camera: [${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)}, ${newPos.z.toFixed(1)}]`);
+
+      console.log(
+        `📷 Camera: [${newPos.x.toFixed(1)}, ${newPos.y.toFixed(1)}, ${newPos.z.toFixed(1)}]`,
+      );
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -165,11 +190,11 @@ function CameraPositionHelper() {
 /**
  * Internal scene component
  */
-function Scene({ 
-  colorProgress, 
+function Scene({
+  colorProgress,
   gameState,
-  onWakeUpComplete 
-}: { 
+  onWakeUpComplete,
+}: {
   colorProgress: number;
   gameState: GameState;
   onWakeUpComplete: () => void;
@@ -259,11 +284,56 @@ export default function Teste() {
   const [allInteractionsComplete, setAllInteractionsComplete] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
 
+  // === RAIN BACKGROUND AUDIO ===
+  const rainAudioRef = useRef<HTMLAudioElement | null>(null);
+  const rainStoppedRef = useRef(false);
+
+  const startRainAudio = useCallback(() => {
+    if (rainAudioRef.current || rainStoppedRef.current) return;
+    const audio = new Audio("/songs/rain_bg_song.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    rainAudioRef.current = audio;
+    audio.play().catch((err) => {
+      console.warn("🌧️ Rain audio autoplay blocked:", err);
+    });
+  }, []);
+
+  const pauseRainAudio = useCallback(() => {
+    if (rainAudioRef.current && !rainStoppedRef.current) {
+      rainAudioRef.current.pause();
+    }
+  }, []);
+
+  const resumeRainAudio = useCallback(() => {
+    if (rainAudioRef.current && !rainStoppedRef.current) {
+      rainAudioRef.current.play().catch(console.warn);
+    }
+  }, []);
+
+  const fadeOutRainAudio = useCallback((duration = 2000) => {
+    if (!rainAudioRef.current || rainStoppedRef.current) return;
+    rainStoppedRef.current = true;
+    const audio = rainAudioRef.current;
+    const startVolume = audio.volume;
+    const steps = 20;
+    const stepDuration = duration / steps;
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      audio.volume = Math.max(0, startVolume * (1 - step / steps));
+      if (step >= steps) {
+        clearInterval(interval);
+        audio.pause();
+      }
+    }, stepDuration);
+  }, []);
+
   // Manages state transitions
   const handleIntroComplete = () => {
     console.log("📖 Narrative intro complete");
     setGameState("waking_up");
-    
+
     // Shows wake up prompt after 1 second
     setTimeout(() => {
       setShowWakeUpPrompt(true);
@@ -276,6 +346,45 @@ export default function Teste() {
     console.log("🚶 Character stood up - gameplay unlocked");
     setGameState("playing");
   };
+
+  // Start rain audio when game world appears (after intro)
+  useEffect(() => {
+    if (gameState !== "intro") {
+      startRainAudio();
+    }
+  }, [gameState, startRainAudio]);
+
+  // Pause rain during object interactions, resume when dismissed
+  useEffect(() => {
+    const handleInteractionStart = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.objeto === "mirror" || detail?.objeto === "espelho") return;
+      pauseRainAudio();
+    };
+
+    const handleInteractionEnd = () => {
+      resumeRainAudio();
+    };
+
+    window.addEventListener("showGeminiText", handleInteractionStart);
+    window.addEventListener("interactionDismissed", handleInteractionEnd);
+
+    return () => {
+      window.removeEventListener("showGeminiText", handleInteractionStart);
+      window.removeEventListener("interactionDismissed", handleInteractionEnd);
+    };
+  }, [pauseRainAudio, resumeRainAudio]);
+
+  // Cleanup rain audio on unmount
+  useEffect(() => {
+    return () => {
+      if (rainAudioRef.current) {
+        rainAudioRef.current.pause();
+        rainAudioRef.current.src = "";
+        rainAudioRef.current = null;
+      }
+    };
+  }, []);
 
   // Listener for SPACE key during waking_up
   useEffect(() => {
@@ -312,16 +421,23 @@ export default function Teste() {
       const { objeto } = e.detail;
 
       // Detecta interação com o espelho e mostra sequência final
-      if (objeto === "espelho" || objeto === "mirror"  ) {
+      if (objeto === "espelho" || objeto === "mirror") {
         // Verifica se todas as outras interações foram completadas
         const allCompleted = REQUIRED_OBJECTS_FOR_COMPLETE_ENDING.every(
-          reqObject => interactedObjects.has(reqObject)
+          (reqObject) => interactedObjects.has(reqObject),
         );
-        
+
         console.log("🪞 Mirror interacted");
-        console.log(`   Interacted objects: ${Array.from(interactedObjects).join(', ')}`);
+        console.log(
+          `   Interacted objects: ${Array.from(interactedObjects).join(", ")}`,
+        );
         console.log(`   All interactions complete: ${allCompleted}`);
-        
+
+        // Fade out rain audio on final mirror interaction (all objects completed)
+        if (allCompleted) {
+          fadeOutRainAudio();
+        }
+
         setAllInteractionsComplete(allCompleted);
         setShowEndGame(true);
         return;
@@ -380,7 +496,7 @@ export default function Teste() {
               }}
             >
               <Suspense fallback={null}>
-                <Scene 
+                <Scene
                   colorProgress={colorProgress}
                   gameState={gameState}
                   onWakeUpComplete={handleWakeUpComplete}
@@ -438,7 +554,9 @@ export default function Teste() {
                 <div>Mouse - Rotate camera</div>
                 <div>Space - Run</div>
                 <div>E - Interact</div>
-                <div style={{ marginTop: "10px", fontSize: "12px", opacity: 0.7 }}>
+                <div
+                  style={{ marginTop: "10px", fontSize: "12px", opacity: 0.7 }}
+                >
                   Click on screen to lock mouse
                 </div>
               </div>
@@ -451,7 +569,8 @@ export default function Teste() {
           {/* Pulse animation for prompt */}
           <style jsx>{`
             @keyframes pulse {
-              0%, 100% {
+              0%,
+              100% {
                 opacity: 0.7;
                 transform: translate(-50%, -50%) scale(1);
               }
@@ -466,7 +585,7 @@ export default function Teste() {
 
       {/* === END GAME SEQUENCE (Mirror interaction) === */}
       {showEndGame && (
-        <EndGameSequence 
+        <EndGameSequence
           allInteractionsComplete={allInteractionsComplete}
           onClose={() => {
             setShowEndGame(false);
