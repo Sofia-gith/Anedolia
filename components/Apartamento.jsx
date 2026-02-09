@@ -24,23 +24,20 @@ export function Model(props) {
       {/* OBJETOS INTERATIVOS */}
       {/* ===================================================== */}
 
-     
       {/* Primeiro livro (deitado) */}
 
-      <Book 
-        position={[4.00, 0.67, -4.10]} 
-        rotation={[0, Math.PI / 4, 0]}   
-        scale={0.08}                     
-
+      <Book
+        position={[4.0, 0.67, -4.1]}
+        rotation={[0, Math.PI / 4, 0]}
+        scale={0.08}
       />
 
       {/* Segundo livro (empilhado) */}
 
-      <Book 
-        position={[4.20, 0.67, -4.10]}  
-        rotation={[0, -Math.PI / 6, 0]}  
-        scale={0.07}                
-
+      <Book
+        position={[4.2, 0.67, -4.1]}
+        rotation={[0, -Math.PI / 6, 0]}
+        scale={0.07}
       />
 
       {/* Área de interação dos livros */}
@@ -59,10 +56,9 @@ export function Model(props) {
         audioPath="/songs/water_song.mp3"
       />
 
-
       {/* QUADRO NA PAREDE */}
-      <PictureFrame 
-        position={[3.90, 0.66, -7.0]}
+      <PictureFrame
+        position={[3.9, 0.66, -7.0]}
         rotation={[0, Math.PI, 0]}
         scale={0.07}
       />
@@ -79,6 +75,7 @@ export function Model(props) {
         objeto="plant"
         position={[-1.5, 0.72, -8.0]}
         interactionDistance={2.0}
+        audioPath="/songs/sheet_song.mp3"
       />
 
       <InteractiveObject
