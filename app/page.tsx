@@ -312,7 +312,7 @@ export default function Teste() {
       const { objeto } = e.detail;
 
       // Detecta interação com o espelho e mostra sequência final
-      if (objeto === "espelho") {
+      if (objeto === "espelho" || objeto === "mirror"  ) {
         // Verifica se todas as outras interações foram completadas
         const allCompleted = REQUIRED_OBJECTS_FOR_COMPLETE_ENDING.every(
           reqObject => interactedObjects.has(reqObject)
