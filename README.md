@@ -375,30 +375,6 @@ planta,The plant by the window persists, even without sun. Its leaves seek light
 
 ---
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**❌ Game doesn't load / Black screen**
-- Check browser console (F12) for errors
-- Ensure WebGL is supported: Visit [webglreport.com](https://webglreport.com)
-- Try disabling browser extensions (especially ad blockers)
-
-**❌ Gemini API returns errors**
-- Verify API key is correct in `.env.local`
-- Check API quota at [Google AI Studio](https://aistudio.google.com)
-- Ensure `.env.local` file exists in root directory
-
-**❌ Character/Camera behaves strangely**
-- Refresh the page (F5)
-- Clear browser cache
-- Try incognito/private browsing mode
-
-**❌ Poor performance / Low FPS**
-- Close other tabs/applications
-- Lower browser zoom to 100%
-- Disable browser hardware acceleration (ironically helps some GPUs)
-
 ### Browser Compatibility
 
 | Browser | Support |
