@@ -1,46 +1,44 @@
 "use client";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
+import { Group } from "three";
 import { InteractiveObject } from "./InteractiveObject";
 import { PictureFrame } from "./PictureFrame";
 import { Book } from "./Book";
 
-export function Model(props) {
-  const { scene } = useGLTF("/apartamento.glb");
-  const sceneRef = useRef();
+interface ApartamentoProps {
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number | [number, number, number];
+}
 
-  // Clone o modelo para evitar conflitos
+export function Model({ position, rotation, scale }: ApartamentoProps) {
+  const { scene } = useGLTF("/apartamento.glb");
+  const sceneRef = useRef<Group>(null);
+
   const clonedScene = scene.clone();
 
   return (
     <group ref={sceneRef}>
-      {/* ESTRUTURA PRINCIPAL (paredes, chão, móveis fixos) */}
+      {/* Main structure (walls, floor, fixed furniture) */}
       <RigidBody type="fixed" colliders="trimesh">
-        <primitive object={clonedScene} {...props} />
+        <primitive object={clonedScene} position={position} rotation={rotation} scale={scale} />
       </RigidBody>
 
-      {/* ===================================================== */}
-      {/* OBJETOS INTERATIVOS */}
-      {/* ===================================================== */}
+      {/* ── Interactive objects ────────────────────────────────── */}
 
-      {/* Primeiro livro (deitado) */}
-
+      {/* Books */}
       <Book
         position={[4.0, 0.67, -4.1]}
         rotation={[0, Math.PI / 4, 0]}
         scale={0.08}
       />
-
-      {/* Segundo livro (empilhado) */}
-
       <Book
         position={[4.2, 0.67, -4.1]}
         rotation={[0, -Math.PI / 6, 0]}
         scale={0.07}
       />
-
-      {/* Área de interação dos livros */}
       <InteractiveObject
         objeto="books"
         position={[3.65, 0.81, -3.76]}
@@ -48,7 +46,7 @@ export function Model(props) {
         audioPath="/songs/paper_song.mp3"
       />
 
-      {/* Máquina de café */}
+      {/* Coffee machine */}
       <InteractiveObject
         objeto="coffee"
         position={[-1.78, 0.91, 0.9]}
@@ -56,14 +54,12 @@ export function Model(props) {
         audioPath="/songs/water_song.mp3"
       />
 
-      {/* QUADRO NA PAREDE */}
+      {/* Picture frame */}
       <PictureFrame
         position={[3.9, 0.66, -7.0]}
         rotation={[0, Math.PI, 0]}
         scale={0.07}
       />
-
-      {/* Área de interação do quadro */}
       <InteractiveObject
         objeto="frame"
         position={[3.95, 1.5, -6.64]}
@@ -71,7 +67,7 @@ export function Model(props) {
         audioPath="/songs/frame_song.mp3"
       />
 
-      {/* PLANTA ao lado da TV */}
+      {/* Plant */}
       <InteractiveObject
         objeto="plant"
         position={[-1.5, 0.72, -8.0]}
@@ -79,6 +75,7 @@ export function Model(props) {
         audioPath="/songs/sheet_song.mp3"
       />
 
+      {/* Mirror */}
       <InteractiveObject
         objeto="mirror"
         position={[4.0, 1.2, -0.5]}
