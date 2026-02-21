@@ -9,19 +9,19 @@
  */
 "use client";
 
-import { IntroNarrativa } from "@/components/IntroNarrativa";
-import { WakeUpSequence } from "@/components/WakeUpSequence";
-import { EndGameSequence } from "@/components/EndGameSequence";
-import { Player3D } from "@/components/Player3D";
-import { CameraThirdPerson } from "@/components/CameraThirdPerson";
+import { IntroNarrativa } from "@/components/sequences/IntroNarrativa";
+import { WakeUpSequence } from "@/components/sequences/WakeUpSequence";
+import { EndGameSequence } from "@/components/sequences/EndGameSequence";
+import { Player3D } from "@/components/player/Player3D";
+import { CameraThirdPerson } from "@/components/camera/CameraThirdPerson";
 // ✅ Now imports the canonical Apartamento directly (InteractableObject removed)
-import { Model as Apartamento } from "@/components/Apartamento";
+import { Model as Apartamento } from "@/components/scene/Apartamento";
 import { AnedoliaEffects } from "@/components/effects/AnedoliaEffects";
 import { GeminiTextDisplay } from "@/components/GeminiTextDisplay";
 import GenGemini from "@/components/GenGemini";
 // ✅ Single source of truth for all interaction state
 import { useInteraction } from "@/components/interaction/useInteraction";
-import { CameraZoom } from "@/components/CameraZoom";
+import { CameraZoom } from "@/components/camera/CameraZoom";
 
 import { Environment, KeyboardControls } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";

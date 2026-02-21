@@ -10,7 +10,7 @@
 import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Vector3, Quaternion } from "three";
-import { useInteraction } from "./interaction/useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 export function CameraZoom() {
   const { camera } = useThree();

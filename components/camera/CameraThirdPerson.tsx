@@ -19,7 +19,7 @@ import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRapier, interactionGroups } from "@react-three/rapier";
 import * as THREE from "three";
-import { useInteraction } from "./interaction/useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 // Collision-group mask: camera ray tests only against group 0 (environment)
 const CAMERA_RAY_GROUPS = interactionGroups([0], [0]);

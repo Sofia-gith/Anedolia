@@ -26,7 +26,7 @@ import {
 } from "@react-three/rapier";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
-import { useInteraction } from "./interaction/useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 // ============================================================
 // CONFIGURAÇÕES

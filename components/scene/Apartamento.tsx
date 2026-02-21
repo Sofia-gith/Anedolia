@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { Group } from "three";
-import { InteractiveObject } from "./InteractiveObject";
+import { InteractiveObject } from "../sequences/InteractiveObject";
 import { PictureFrame } from "./PictureFrame";
 import { Book } from "./Book";
 
