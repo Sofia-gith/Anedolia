@@ -342,6 +342,7 @@ export function Player3D({
 
   const interact = useInteraction((state) => state.interact);
   const zoomState = useInteraction((state) => state.zoomState);
+  const setPlayerPosition = useInteraction((state) => state.setPlayerPosition);
 
   const lastInteractTime = useRef(0);
   const interactCooldown = 500;
@@ -500,12 +501,8 @@ export function Player3D({
       onPositionChange(position);
     }
 
-    // Armazena posição globalmente para detecção de proximidade
-    (window as any).__playerPosition = [
-      translation.x,
-      translation.y,
-      translation.z,
-    ];
+    // Sincroniza posição com o store (usada por InteractiveObject para detecção de proximidade)
+    setPlayerPosition([translation.x, translation.y, translation.z]);
   });
 
   return (

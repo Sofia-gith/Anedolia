@@ -1,11 +1,11 @@
 "use client";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
+import { useInteraction } from "./interaction/useInteraction";
 
-/**
- * Hook to play interaction audio
- */
+// ─── Audio hook ───────────────────────────────────────────────────────────────
+
 function useInteractionAudio(audioPath: string) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -14,58 +14,49 @@ function useInteractionAudio(audioPath: string) {
     audioRef.current = new Audio(audioPath);
     audioRef.current.volume = 0.5;
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      audioRef.current?.pause();
+      audioRef.current = null;
     };
   }, [audioPath]);
 
   const play = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((error) => {
-        console.warn("Error playing audio:", error);
-      });
-    }
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch((err) => console.warn("Audio error:", err));
   };
 
   return { play };
 }
 
-/**
- * Default texts for each interactive object
- * Supports both English and Portuguese names
- */
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
 const OBJECT_TEXTS: Record<string, string> = {
-  books:
-    "Some philosophy and sci-fi books... It's been a while since I read anything.",
-  coffee:
-    "The coffee machine. Another day, another coffee. The routine continues.",
+  books: "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
   frame: "An abstract painting on the wall. Does it mean anything?",
   plant: "A green plant. At least it's still alive, unlike my motivation.",
   mirror: "My reflection stares back at me. Do I still recognize myself?",
 };
 
-/**
- * Map English names to Portuguese (canonical) names
- */
-const NAME_MAPPING: Record<string, string> = {
-  books: "books",
-  coffee: "coffee",
-  frame: "frame",
-  plant: "plant",
-  mirror: "mirror",
+const OBJECT_DISPLAY_NAMES: Record<string, string> = {
+  books: "Books",
+  coffee: "Coffee Machine",
+  frame: "Picture Frame",
+  plant: "Plant",
+  mirror: "Mirror",
 };
 
-/**
- * Wrapper component for 3D objects that trigger texts with E key (proximity)
- * Simplified version without Gemini dependency
- *
- * Usage:
- * <InteractiveObject objeto="café" position={[x, y, z]} />
- * <InteractiveObject objeto="coffee" position={[x, y, z]} /> // Also works!
- */
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface InteractiveObjectProps {
+  objeto: string;
+  position?: [number, number, number];
+  interactionDistance?: number;
+  children?: React.ReactNode;
+  onInteract?: (texto: string) => void;
+  audioPath?: string;
+}
+
 export function InteractiveObject({
   objeto,
   position = [0, 0, 0],
@@ -73,126 +64,91 @@ export function InteractiveObject({
   children,
   onInteract,
   audioPath,
-}: {
-  objeto: string;
-  position?: [number, number, number];
-  interactionDistance?: number;
-  children?: React.ReactNode;
-  onInteract?: (texto: string) => void;
-  audioPath?: string;
-}) {
-  // Convert English name to Portuguese (canonical) if needed
-  const canonicalName = NAME_MAPPING[objeto] || objeto;
-
+}: InteractiveObjectProps) {
   const texto =
-    OBJECT_TEXTS[objeto] ||
-    OBJECT_TEXTS[canonicalName] ||
-    `You examine the ${objeto}.`;
+    OBJECT_TEXTS[objeto] ?? `You examine the ${objeto}.`;
+
+  const displayName =
+    OBJECT_DISPLAY_NAMES[objeto] ??
+    objeto.charAt(0).toUpperCase() + objeto.slice(1);
+
+  // Internal refs
   const objectPosition = useRef(new Vector3(...position));
-  const [isNearby, setIsNearby] = useState(false);
-  const isInteractingRef = useRef(false);
+  const playerVec = useRef(new Vector3());
+  const isNearbyRef = useRef(false);
   const lastInteractTime = useRef(0);
-  const interactCooldown = 500;
-  const { play: playAudio } = useInteractionAudio(audioPath || "");
+  const COOLDOWN_MS = 500;
 
-  const handleInteraction = () => {
-    // Toggle interaction state: only play audio when opening, not closing
-    const isOpening = !isInteractingRef.current;
-    isInteractingRef.current = isOpening;
+  // Audio
+  const { play: playAudio } = useInteractionAudio(audioPath ?? "");
 
-    // Play audio only on the first press (opening interaction)
-    if (isOpening && audioPath) {
-      playAudio();
-    }
+  // Store selectors (read)
+  const activeInteraction = useInteraction((s) => s.activeInteraction);
 
-    if (onInteract) {
-      onInteract(texto);
-    }
+  // Store actions (write)
+  const setNearbyObject = useInteraction((s) => s.setNearbyObject);
+  const setActiveInteraction = useInteraction((s) => s.setActiveInteraction);
+  const markInteracted = useInteraction((s) => s.markInteracted);
 
-    // Dispatches event to page.tsx (used for progress and mirror)
-    // ALWAYS uses canonical Portuguese name for consistency
-    window.dispatchEvent(
-      new CustomEvent("objectInteracted", {
-        detail: { objeto: canonicalName },
-      }),
-    );
-
-    // For mirror, don't show old Gemini UI
-    // The final sequence will be controlled by page.tsx
-    if (canonicalName !== "espelho" && canonicalName !== "mirror") {
-      // Dispatches custom event for external UI
-      window.dispatchEvent(
-        new CustomEvent("showGeminiText", {
-          detail: { objeto: canonicalName, texto },
-        }),
-      );
-    }
-
-    console.log(
-      `✨ Interacted with ${objeto} (canonical: ${canonicalName}):`,
-      texto,
-    );
-  };
-
-  // Detects proximity every frame using PLAYER POSITION
+  // ── Proximity detection (reads playerPosition directly from store to avoid per-render subscription) ──
   useFrame(() => {
-    // Gets current player position from global store
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const playerPos = (window as any).__playerPosition || [0, 0, 0];
-    const playerVector = new Vector3(playerPos[0], playerPos[1], playerPos[2]);
-
-    const distance = playerVector.distanceTo(objectPosition.current);
+    const [px, py, pz] = useInteraction.getState().playerPosition;
+    playerVec.current.set(px, py, pz);
+    const distance = playerVec.current.distanceTo(objectPosition.current);
     const nearby = distance <= interactionDistance;
 
-    if (nearby !== isNearby) {
-      setIsNearby(nearby);
-      // Reset interaction state when player walks away
-      if (!nearby) {
-        isInteractingRef.current = false;
+    if (nearby === isNearbyRef.current) return; // no change
+    isNearbyRef.current = nearby;
+
+    if (nearby) {
+      setNearbyObject({ objeto, name: displayName });
+    } else {
+      // Only clear if we are still the registered nearby object
+      const current = useInteraction.getState().nearbyObject;
+      if (current?.objeto === objeto) {
+        setNearbyObject(null);
       }
     }
   });
 
-  // Listens to E key when nearby
+  // ── E key interaction ──
   useEffect(() => {
-    if (!isNearby) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "e" || e.key === "E") && isNearby) {
-        const now = Date.now();
-        if (now - lastInteractTime.current > interactCooldown) {
-          e.preventDefault();
-          handleInteraction();
-          lastInteractTime.current = now;
-        }
+      if (e.key !== "e" && e.key !== "E") return;
+      if (!isNearbyRef.current) return;
+      // If another modal is open, ignore
+      if (useInteraction.getState().activeInteraction) return;
+
+      const now = Date.now();
+      if (now - lastInteractTime.current < COOLDOWN_MS) return;
+      lastInteractTime.current = now;
+
+      e.preventDefault();
+
+      if (audioPath) playAudio();
+      onInteract?.(texto);
+
+      if (objeto === "mirror") {
+        // Mirror triggers the end game — mark immediately (no modal)
+        markInteracted(objeto);
+      } else {
+        // All other objects: open the text modal
+        setActiveInteraction({ objeto, texto });
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isNearby, texto]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objeto, texto, audioPath]);
 
-  // Emits proximity event for external UI to show prompt
+  // ── Cleanup on unmount ──
   useEffect(() => {
-    if (isNearby) {
-      window.dispatchEvent(
-        new CustomEvent("objectNearby", {
-          detail: {
-            objeto: canonicalName,
-            name:
-              canonicalName.charAt(0).toUpperCase() + canonicalName.slice(1),
-          },
-        }),
-      );
-    } else {
-      window.dispatchEvent(
-        new CustomEvent("objectFar", {
-          detail: { objeto: canonicalName },
-        }),
-      );
-    }
-  }, [isNearby, canonicalName]);
+    return () => {
+      const current = useInteraction.getState().nearbyObject;
+      if (current?.objeto === objeto) setNearbyObject(null);
+    };
+  }, [objeto, setNearbyObject]);
 
   return <group position={position}>{children}</group>;
 }

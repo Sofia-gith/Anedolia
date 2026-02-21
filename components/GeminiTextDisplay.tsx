@@ -1,131 +1,69 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import Image from "next/image";
+import { useInteraction } from "./interaction/useInteraction";
 
 /**
- * UI Component that displays Gemini texts with image
- * Now only displays - doesn't manage interaction
- * Must be rendered OUTSIDE the Canvas, alongside it
+ * GeminiTextDisplay
+ *
+ * Displays the interaction modal and proximity prompt.
+ * Reads state directly from the Zustand store — no window events.
+ * Must be rendered OUTSIDE the Canvas, alongside it.
  */
 export function GeminiTextDisplay() {
-  const [currentText, setCurrentText] = useState<{
-    objeto: string;
-    texto: string;
-  } | null>(null);
-  const [nearbyObject, setNearbyObject] = useState<{
-    objeto: string;
-    name: string;
-  } | null>(null);
+  // ── Store reads ──
+  const nearbyObject = useInteraction((s) => s.nearbyObject);
+  const activeInteraction = useInteraction((s) => s.activeInteraction);
 
+  // ── Store actions ──
+  const setActiveInteraction = useInteraction((s) => s.setActiveInteraction);
+  const markInteracted = useInteraction((s) => s.markInteracted);
+
+  // ── Close modal ──
   const handleClose = useCallback(() => {
-    // Dispatch event to increment color progress
-    if (currentText) {
-      window.dispatchEvent(
-        new CustomEvent("objectInteracted", {
-          detail: { objeto: currentText.objeto },
-        }),
-      );
-    }
+    if (!activeInteraction) return;
 
-    // Signal that the interaction modal was dismissed (for background audio resume)
-    window.dispatchEvent(new CustomEvent("interactionDismissed"));
+    // Mark interaction as complete when the player dismisses the modal
+    markInteracted(activeInteraction.objeto);
+    setActiveInteraction(null);
 
-    setCurrentText(null);
-
-    // Clear modal flag after a short delay so the same E keypress
-    // doesn't immediately re-trigger the interaction
-    setTimeout(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).__interactionModalOpen = false;
-    }, 200);
-
-    // Re-acquire pointer lock on the canvas so the player can continue
-    // without needing to click the screen again
+    // Re-acquire pointer lock so the player can move without clicking again
     requestAnimationFrame(() => {
       const canvas = document.querySelector("canvas");
       if (canvas && !document.pointerLockElement) {
         canvas.requestPointerLock();
       }
     });
-  }, [currentText]);
+  }, [activeInteraction, markInteracted, setActiveInteraction]);
 
-  // Listens to show text event
+  // ── Keyboard shortcut to close modal (E or Space) ──
   useEffect(() => {
-    const handleShowText = (e: CustomEvent) => {
-      console.log("Event received:", e.detail);
-      setCurrentText(e.detail);
-      // Flag so InteractiveObject won't re-trigger while modal is open
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).__interactionModalOpen = true;
-    };
+    if (!activeInteraction) return;
 
-    window.addEventListener("showGeminiText", handleShowText as EventListener);
-
-    return () => {
-      window.removeEventListener(
-        "showGeminiText",
-        handleShowText as EventListener,
-      );
-    };
-  }, []);
-
-  // Listens to proximity events
-  useEffect(() => {
-    const handleNearby = (e: CustomEvent) => {
-      setNearbyObject(e.detail);
-    };
-
-    const handleFar = () => {
-      setNearbyObject(null);
-    };
-
-    window.addEventListener("objectNearby", handleNearby as EventListener);
-    window.addEventListener("objectFar", handleFar as EventListener);
-
-    return () => {
-      window.removeEventListener("objectNearby", handleNearby as EventListener);
-      window.removeEventListener("objectFar", handleFar as EventListener);
-    };
-  }, []);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.code === "Space" || e.key === "e" || e.key === "E") &&
-        currentText
-      ) {
+      if (e.code === "Space" || e.key === "e" || e.key === "E") {
         e.preventDefault();
         handleClose();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeInteraction, handleClose]);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [currentText, handleClose]);
-
-  // Maps object name to image filename
+  // ── Image mapping ──
   const imageMap: Record<string, string> = {
-    // English keys (used by InteractiveObject in Apartamento.jsx)
     coffee: "cafe.png",
     plant: "planta.png",
     books: "livro.png",
     mirror: "espelho.png",
     frame: "quadro.png",
-    // Portuguese keys (legacy / Apartamento0)
-    café: "cafe.png",
-    planta: "planta.png",
-    livros: "livro.png",
-    espelho: "espelho.png",
-    quadro: "quadro.png",
   };
 
   return (
     <>
-      {/* Interaction prompt when nearby */}
-      {nearbyObject && !currentText && (
+      {/* Proximity prompt */}
+      {nearbyObject && !activeInteraction && (
         <div
           style={{
             position: "fixed",
@@ -165,28 +103,20 @@ export function GeminiTextDisplay() {
             >
               E
             </div>
-            <div
-              style={{
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: "500",
-              }}
-            >
+            <div style={{ color: "#fff", fontSize: "16px", fontWeight: "500" }}>
               Interact with <strong>{nearbyObject.name}</strong>
             </div>
           </div>
         </div>
       )}
 
-      {/* Text and image modal */}
-      {currentText && (
+      {/* Interaction modal */}
+      {activeInteraction && (
         <div
+          onClick={handleClose}
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            inset: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -196,12 +126,8 @@ export function GeminiTextDisplay() {
             backgroundColor: "rgba(0, 0, 0, 0.8)",
             backdropFilter: "blur(10px)",
           }}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClose();
-          }}
         >
-          {/* Image in center */}
+          {/* Object image */}
           <div
             style={{
               marginBottom: "40px",
@@ -212,18 +138,15 @@ export function GeminiTextDisplay() {
             }}
           >
             <Image
-              src={`/images/${imageMap[currentText.objeto] || "cafe.png"}`}
-              alt={currentText.objeto}
+              src={`/images/${imageMap[activeInteraction.objeto] ?? "cafe.png"}`}
+              alt={activeInteraction.objeto}
               width={400}
               height={400}
-              style={{
-                objectFit: "cover",
-                display: "block",
-              }}
+              style={{ objectFit: "cover", display: "block" }}
             />
           </div>
 
-          {/* Text below */}
+          {/* Interaction text */}
           <div
             style={{
               background: "rgba(0, 0, 0, 0.75)",
@@ -238,7 +161,7 @@ export function GeminiTextDisplay() {
               lineHeight: "1.6",
             }}
           >
-            {currentText.texto}
+            {activeInteraction.texto}
           </div>
         </div>
       )}
