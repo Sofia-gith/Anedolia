@@ -10,7 +10,7 @@ Title: Apartamento
 import React from "react";
 import { useGLTF } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
-import { InteractiveObject } from "./InteractiveObject";
+import { InteractiveObject } from "../sequences/InteractiveObject";
 
 useGLTF.preload("/apartamento.glb");
 

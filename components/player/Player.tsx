@@ -17,7 +17,7 @@ import {
 } from "@react-three/rapier";
 import { useRef } from "react";
 import * as THREE from "three";
-import { useInteraction } from "./interaction/useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 const VELOCITY_LERP_FACTOR = 8;
 const STOP_THRESHOLD = 0.01;

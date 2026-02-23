@@ -2,7 +2,7 @@
 import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
-import { useInteraction } from "./interaction/useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
 
 // ─── Audio hook ───────────────────────────────────────────────────────────────
 
