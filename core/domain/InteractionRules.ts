@@ -5,7 +5,7 @@
  * No external dependencies — pure data and pure functions.
  *
  * Rules encoded here:
- * - Which objects exist
+ * - Which objects exist and their display names
  * - How much each contributes to the color progress (0 = none)
  * - Which are required for the complete ending
  * - Which act as a trigger (mirror) rather than a collectible
@@ -14,6 +14,8 @@
 // ─── Object definition ────────────────────────────────────────────────────────
 
 export interface ObjectRule {
+  /** Name shown in the proximity prompt UI */
+  displayName: string;
   /** Contribution to the color progress (0–1 scale, summed across objects) */
   colorWeight: number;
   /** Must be interacted with for the "complete" ending */
@@ -28,11 +30,11 @@ export interface ObjectRule {
 // ─── Game objects ─────────────────────────────────────────────────────────────
 
 export const GAME_OBJECTS = {
-  coffee: { colorWeight: 0.1,  requiredForEnding: true,  isTrigger: false },
-  plant:  { colorWeight: 0.15, requiredForEnding: true,  isTrigger: false },
-  books:  { colorWeight: 0.2,  requiredForEnding: true,  isTrigger: false },
-  frame:  { colorWeight: 0.3,  requiredForEnding: true,  isTrigger: false },
-  mirror: { colorWeight: 0,    requiredForEnding: false, isTrigger: true  },
+  coffee: { displayName: "Coffee Machine", colorWeight: 0.1,  requiredForEnding: true,  isTrigger: false },
+  plant:  { displayName: "Plant",          colorWeight: 0.15, requiredForEnding: true,  isTrigger: false },
+  books:  { displayName: "Books",          colorWeight: 0.2,  requiredForEnding: true,  isTrigger: false },
+  frame:  { displayName: "Picture Frame",  colorWeight: 0.3,  requiredForEnding: true,  isTrigger: false },
+  mirror: { displayName: "Mirror",         colorWeight: 0,    requiredForEnding: false, isTrigger: true  },
 } as const satisfies Record<string, ObjectRule>;
 
 export type ObjectId = keyof typeof GAME_OBJECTS;

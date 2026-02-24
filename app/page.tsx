@@ -53,7 +53,7 @@ export default function GamePage() {
   }, []);
 
   const { colorProgress } = useGameProgress({
-    onMirrorTriggered: handleMirrorTriggered,
+    onEndingTriggered: handleMirrorTriggered,
     fadeOutRainAudio,
     playEndAudio,
   });

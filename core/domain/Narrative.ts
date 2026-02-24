@@ -1,14 +1,13 @@
 /**
  * Narrative — Core Domain
  *
- * All narrative content for the game: intro slides and ending screens.
- * Pure data — no React, no components, no external dependencies.
+ * All narrative content: intro slides, ending screens,
+ * and interaction texts shown when the player examines objects.
  *
- * Keeping narrative content here means:
- * - Easy to translate or edit without touching UI components
- * - Testable independently of rendering
- * - Clear separation between "what the story says" and "how it's shown"
+ * Pure data — no React, no components, no external dependencies.
  */
+
+import { ObjectId } from "./InteractionRules";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,30 +20,28 @@ export interface EndingContent {
   imagePath: string;
   mainText: string;
   subText: string;
-  hintText?: string; // Shown only on the incomplete ending
+  hintText?: string;
   isAnimated: boolean;
 }
 
-// ─── Intro ────────────────────────────────────────────────────────────────────
+// ─── Intro slides ─────────────────────────────────────────────────────────────
 
 export const INTRO_SLIDES: NarrativeSlide[] = [
-  {
-    imagePath: "/intro/parte1.png",
-    text: "Back then, everything was simpler, easier",
-  },
-  {
-    imagePath: "/intro/parte2.png",
-    text: "What happened?",
-  },
-  {
-    imagePath: "/intro/parte3.png",
-    text: "Every day is the same",
-  },
-  {
-    imagePath: "/intro/parte4.png",
-    text: "...",
-  },
+  { imagePath: "/intro/parte1.png", text: "Back then, everything was simpler, easier" },
+  { imagePath: "/intro/parte2.png", text: "What happened?" },
+  { imagePath: "/intro/parte3.png", text: "Every day is the same" },
+  { imagePath: "/intro/parte4.png", text: "..." },
 ];
+
+// ─── Object interaction texts ─────────────────────────────────────────────────
+
+export const OBJECT_TEXTS: Record<ObjectId, string> = {
+  coffee: "The coffee machine. Another day, another coffee. The routine continues.",
+  plant:  "A green plant. At least it's still alive, unlike my motivation.",
+  books:  "Some philosophy and sci-fi books... It's been a while since I read anything.",
+  frame:  "An abstract painting on the wall. Does it mean anything?",
+  mirror: "My reflection stares back at me. Do I still recognize myself?",
+};
 
 // ─── Endings ──────────────────────────────────────────────────────────────────
 
@@ -63,7 +60,6 @@ export const ENDING_INCOMPLETE: EndingContent = {
   isAnimated: false,
 };
 
-/** Returns the correct ending content based on session outcome */
 export function getEndingContent(isComplete: boolean): EndingContent {
   return isComplete ? ENDING_COMPLETE : ENDING_INCOMPLETE;
 }

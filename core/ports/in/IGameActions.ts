@@ -5,7 +5,7 @@
  * Adapters call these methods — they never manipulate session state directly.
  */
 
-import { GameState } from "../domain/GameSession";
+import { GameState } from "../../domain/GameSession";
 
 export interface IGameActions {
   /** Advance the game to the next state (e.g. intro → waking_up) */

@@ -7,7 +7,7 @@
  * The core knows nothing about WHO listens — it just emits.
  */
 
-import { GameState } from "../domain/GameSession";
+import { GameState } from "../../domain/GameSession";
 
 export interface IGameEvents {
   /** Fired when the game transitions to a new state */

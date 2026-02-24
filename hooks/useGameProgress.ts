@@ -2,66 +2,68 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useInteraction } from "@/components/interaction/useInteraction";
-
-const OBJECT_COLOR_VALUES: Record<string, number> = {
-  coffee: 0.1,
-  plant: 0.15,
-  books: 0.2,
-  mirror: 0.25,
-  frame: 0.3,
-};
-
-const REQUIRED_FOR_COMPLETE_ENDING = ["coffee", "plant", "books", "frame"];
+import {
+  calculateColorProgress,
+  isEndingComplete,
+  isTriggerObject,
+  isValidObject,
+  type ObjectId,
+} from "@/core";
 
 interface UseGameProgressOptions {
-  onMirrorTriggered: (allComplete: boolean) => void;
+  onEndingTriggered: (allComplete: boolean) => void;
   fadeOutRainAudio: () => void;
   playEndAudio: () => void;
 }
 
 /**
- * useGameProgress
+ * useGameProgress — Adapter (State)
  *
- * Tracks which objects the player has interacted with and:
- * - Computes the color progress value (drives AnedoliaEffects saturation)
- * - Detects mirror interaction and triggers the end game sequence
+ * Bridges the Zustand interaction store with the core domain:
+ * - Delegates color progress calculation to core/ColorProgress
+ * - Delegates ending completion check to core/InteractionRules
+ * - Delegates trigger detection to core/InteractionRules
  */
 export function useGameProgress({
-  onMirrorTriggered,
+  onEndingTriggered,
   fadeOutRainAudio,
   playEndAudio,
 }: UseGameProgressOptions) {
   const [colorProgress, setColorProgress] = useState(0);
-  const mirrorHandledRef = useRef(false);
+  const endingHandledRef = useRef(false);
 
   const interactedObjects = useInteraction((s) => s.interactedObjects);
 
   useEffect(() => {
     if (interactedObjects.length === 0) return;
 
-    // Recalculate color progress from scratch to keep it in sync
-    const newProgress = interactedObjects.reduce(
-      (acc, obj) => acc + (OBJECT_COLOR_VALUES[obj] ?? 0),
-      0,
-    );
-    setColorProgress(Math.min(newProgress, 1));
+    // Filter to valid, non-trigger objects for progress calculation
+    const collectibles = interactedObjects
+      .filter(isValidObject)
+      .filter((id) => !isTriggerObject(id as ObjectId)) as ObjectId[];
 
-    // Mirror triggers the end game — only once
-    if (interactedObjects.includes("mirror") && !mirrorHandledRef.current) {
-      mirrorHandledRef.current = true;
+    // ✅ Core calculates progress — no weights defined here
+    setColorProgress(calculateColorProgress(collectibles));
 
-      const allComplete = REQUIRED_FOR_COMPLETE_ENDING.every((req) =>
-        interactedObjects.includes(req),
-      );
+    // ✅ Core detects the trigger object — no hardcoded "mirror" string here
+    const triggerInteracted = interactedObjects
+      .filter(isValidObject)
+      .some((id) => isTriggerObject(id as ObjectId));
+
+    if (triggerInteracted && !endingHandledRef.current) {
+      endingHandledRef.current = true;
+
+      // ✅ Core checks if ending is complete — no hardcoded list here
+      const allComplete = isEndingComplete(collectibles);
 
       if (allComplete) {
         fadeOutRainAudio();
         setTimeout(playEndAudio, 2000);
       }
 
-      onMirrorTriggered(allComplete);
+      onEndingTriggered(allComplete);
     }
-  }, [interactedObjects, fadeOutRainAudio, playEndAudio, onMirrorTriggered]);
+  }, [interactedObjects, fadeOutRainAudio, playEndAudio, onEndingTriggered]);
 
   return { colorProgress };
 }
