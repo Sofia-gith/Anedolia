@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" alt="Next.js">
   <img src="https://img.shields.io/badge/React-18-61dafb?logo=react" alt="React">
   <img src="https://img.shields.io/badge/Three.js-WebGL-000000?logo=three.js" alt="Three.js">
   <img src="https://img.shields.io/badge/Gemini-API-4285F4?logo=google" alt="Gemini">
@@ -21,9 +21,9 @@
   <a href="#-about">About</a> •
   <a href="#-features">Features</a> •
   <a href="#-installation">Installation</a> •
+  <a href="#-architecture">Architecture</a> •
   <a href="#-how-it-works">How It Works</a> •
-  <a href="#-gemini-integration">Gemini Integration</a> •
-  <a href="#-gameplay">Gameplay</a>
+  <a href="#-gemini-integration">Gemini Integration</a>
 </p>
 
 ---
@@ -66,6 +66,7 @@ The game explores profound themes of **emotional numbness**, **routine**, and **
 - **Cinematic Sequences** — Narrative intro and emotional conclusion
 
 ### ⚡ Technical
+- **Hexagonal Architecture** — Clean separation between domain, adapters and UI
 - **WebGL-Based** — Runs directly in browser, no downloads
 - **Optimized Performance** — Maintains 60fps on modern browsers
 - **Responsive Design** — Works across devices
@@ -73,12 +74,11 @@ The game explores profound themes of **emotional numbness**, **routine**, and **
 
 ---
 
-
 ## 🚀 Tech Stack
 
 | Category | Technologies |
 |----------|-------------|
-| **Framework** | Next.js 14, React 18, TypeScript |
+| **Framework** | Next.js 16, React 18, TypeScript |
 | **3D Rendering** | React Three Fiber, Three.js, @react-three/drei |
 | **Physics** | @react-three/rapier (Rapier physics engine) |
 | **AI** | Google Gemini API (gemini-1.5-flash) |
@@ -110,8 +110,6 @@ cd Anedolia
 2. **Install dependencies**
 ```bash
 npm install
-# or
-yarn install
 ```
 
 3. **Configure environment variables**
@@ -126,8 +124,6 @@ GOOGLE_API_KEY=your_gemini_api_key_here
 4. **Run the development server**
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
 5. **Open the game**
@@ -142,62 +138,274 @@ npm start
 
 ---
 
-## 🎯 Project Structure
+## 🏛️ Architecture
+
+Anedolia follows **Hexagonal Architecture** (also known as Ports & Adapters), ensuring a clean separation between game rules and implementation details.
+
+### The Core Principle
+
+> The domain knows nothing about React, Three.js, Zustand, or the browser.
+> Everything depends on the core. The core depends on nothing.
+
 ```
-anedolia/
+components/  →  hooks/  →  core/
+     ↓              ↓
+   app/page.tsx  ←──┘
+```
+
+### Folder Structure
+
+```
+/
+├── core/                             ← Pure domain (no external dependencies)
+│   ├── index.ts                      ← Public API — adapters import from here
+│   ├── domain/
+│   │   ├── InteractionRules.ts       ← Objects, weights, trigger rules
+│   │   ├── ColorProgress.ts          ← Pure progress calculation
+│   │   ├── GameSession.ts            ← State machine + session reducers
+│   │   └── Narrative.ts              ← Intro slides, object texts, endings
+│   └── ports/
+│       ├── in/IGameActions.ts        ← Contract: what adapters call
+│       └── out/IGameEvents.ts        ← Contract: what the core emits
+│
 ├── app/
-│   ├── page.tsx                      # 🎮 Main game page
-│   ├── layout.tsx                    # 🏗️ Root layout
-│   ├── globals.css                   # 🎨 Global styles
-│   ├── api/
-│   │   └── gemini-route/
-│   │       └── route.ts              # 🤖 Gemini API endpoint (Server-side)
-│   └── gemini/
-│       └── page.tsx                  # 🧪 Gemini API testing page
+│   └── page.tsx                      ← Orchestrator (state machine + render)
 │
-├── components/
-│   ├── Apartamento.jsx               # 🏠 3D apartment model + interactive objects
-│   ├── Player3D.tsx                  # 🚶 Third-person player controller
-│   ├── Player.tsx                    # 👁️ First-person player controller
-│   ├── CameraThirdPerson.tsx         # 📹 Third-person camera system
-│   ├── CameraZoom.tsx                # 🔍 Cinematic zoom on interactions
-│   ├── InteractiveObject.tsx         # 🎯 Proximity-based interaction logic
-│   ├── IntroNarrativa.tsx            # 📖 Narrative intro sequence
-│   ├── WakeUpSequence.tsx            # 🛏️ Character wake-up animation
-│   ├── EndGameSequence.tsx           # 🎬 Ending cinematic sequence
-│   ├── GeminiTextDisplay.tsx         # 💬 UI for Gemini-generated text
-│   ├── GenGemini.tsx                 # 🧠 Gemini content manager (Context)
-│   ├── Book.tsx                      # 📚 3D book model component
-│   ├── PictureFrame.tsx              # 🖼️ 3D picture frame component
-│   │
+├── components/                       ← UI Adapters
+│   ├── camera/
+│   │   ├── CameraThirdPerson.tsx
+│   │   └── CameraZoom.tsx
 │   ├── effects/
-│   │   └── AnedoliaEffects.tsx       # 🌈 Post-processing (grayscale → color)
-│   │
+│   │   └── AnedoliaEffects.tsx
 │   ├── interaction/
-│   │   ├── ApartamentoComInteracao.jsx   # 🏠 Apartment with interaction system
-│   │   ├── InteractableObject.tsx        # 🎯 Object interaction + zoom logic
-│   │   └── useInteraction.tsx            # 📦 Zustand store for interactions
-│   │
+│   │   ├── InteractiveObject.tsx     ← Uses core/InteractionRules + core/Narrative
+│   │   └── useInteraction.tsx        ← Zustand store
+│   ├── player/
+│   │   ├── Player.tsx
+│   │   └── Player3D.tsx
+│   ├── scene/
+│   │   ├── Apartamento.tsx
+│   │   ├── Book.tsx
+│   │   ├── GameScene.tsx
+│   │   └── PictureFrame.tsx
+│   ├── sequences/
+│   │   ├── EndGameSequence.tsx       ← Uses core/Narrative
+│   │   ├── IntroNarrativa.tsx        ← Uses core/Narrative
+│   │   └── WakeUpSequence.tsx
 │   └── ui/
-│       └── InteractionPrompt.tsx     # 💡 "Press E to interact" UI
+│       ├── GeminiTextDisplay.tsx
+│       └── GenGemini.tsx
 │
-├── config/
-│   └── env.ts                        # ⚙️ Environment variable validation
+├── hooks/                            ← State Adapters
+│   ├── useGameAudio.ts
+│   └── useGameProgress.ts            ← Uses core/InteractionRules + core/ColorProgress
 │
-├── public/
-│   ├── *.glb                         # 🎨 3D models (apartment, character, objects)
-│   ├── models/                       # 👤 Character animation models
-│   ├── songs/                        # 🎵 Interaction audio files
-│   ├── intro/                        # 🎬 Intro sequence images
-│   ├── endGame/                      # 🏁 End game assets
-│   └── images/                       # 🖼️ UI and object images
-│
-├── .env.local                        # 🔐 Environment variables (not in repo)
-├── .env.example                      # 📝 Example environment file
-├── package.json                      # 📦 Dependencies
-├── tsconfig.json                     # ⚙️ TypeScript configuration
-└── README.md                         # 📖 You are here!
+└── public/
+    ├── endGame/
+    ├── images/
+    ├── intro/
+    ├── models/
+    └── songs/
 ```
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    direction TB
+
+    namespace Core_Domain {
+
+        class InteractionRules {
+            <<domain>>
+            +GAME_OBJECTS : Record~ObjectId, ObjectRule~
+            +ALL_OBJECT_IDS : ObjectId[]
+            +REQUIRED_FOR_ENDING : ObjectId[]
+            +TRIGGER_OBJECTS : ObjectId[]
+            +isValidObject(id) bool
+            +isTriggerObject(id) bool
+            +isEndingComplete(interacted) bool
+        }
+
+        class ObjectRule {
+            <<value object>>
+            +displayName : string
+            +colorWeight : number
+            +requiredForEnding : boolean
+            +isTrigger : boolean
+        }
+
+        class ColorProgress {
+            <<domain>>
+            +calculateColorProgress(interacted) number
+        }
+
+        class GameSession {
+            <<domain>>
+            +state : GameState
+            +interactedObjects : ObjectId[]
+            +colorProgress : number
+            +endingTriggered : boolean
+            +endingComplete : boolean
+            +createInitialSession() GameSession
+            +transitionState(session, to) GameSession
+            +recordInteraction(session, id) GameSession
+            +canTransition(from, to) boolean
+        }
+
+        class Narrative {
+            <<domain>>
+            +INTRO_SLIDES : NarrativeSlide[]
+            +OBJECT_TEXTS : Record~ObjectId, string~
+            +ENDING_COMPLETE : EndingContent
+            +ENDING_INCOMPLETE : EndingContent
+            +getEndingContent(isComplete) EndingContent
+        }
+    }
+
+    namespace Core_Ports {
+
+        class IGameActions {
+            <<port in>>
+            +advanceState(to) void
+            +interact(objectId) void
+        }
+
+        class IGameEvents {
+            <<port out>>
+            +onStateChanged(state) void
+            +onObjectInteracted(objectId) void
+            +onColorProgressChanged(value) void
+            +onEndingTriggered(isComplete) void
+            +onModalOpened() void
+            +onModalClosed() void
+        }
+    }
+
+    namespace Adapters_Hooks {
+
+        class useInteraction {
+            <<adapter state>>
+            +playerPosition : Vec3
+            +nearbyObject : NearbyObjectInfo
+            +activeInteraction : ActiveInteractionInfo
+            +interactedObjects : string[]
+            +zoomState : ZoomState
+            +setPlayerPosition(pos) void
+            +setNearbyObject(obj) void
+            +setActiveInteraction(info) void
+            +markInteracted(id) void
+            +interact(playerPos) void
+            +startZoom(...) void
+            +endZoom() void
+        }
+
+        class useGameProgress {
+            <<adapter state>>
+            +colorProgress : number
+            -endingHandledRef : boolean
+            +useGameProgress(options) object
+        }
+
+        class useGameAudio {
+            <<adapter state>>
+            -rainAudioRef : HTMLAudioElement
+            -endAudioRef : HTMLAudioElement
+            +fadeOutRainAudio() void
+            +playEndAudio() void
+        }
+    }
+
+    namespace Adapters_UI {
+
+        class InteractiveObject {
+            <<adapter ui>>
+            +objeto : string
+            +position : Vec3
+            +interactionDistance : number
+            +audioPath : string
+        }
+
+        class GeminiTextDisplay {
+            <<adapter ui>>
+        }
+
+        class IntroNarrativa {
+            <<adapter ui>>
+            +onComplete() void
+        }
+
+        class EndGameSequence {
+            <<adapter ui>>
+            +allInteractionsComplete : boolean
+            +onClose() void
+        }
+
+        class GameScene {
+            <<adapter ui>>
+            +colorProgress : number
+            +gameState : GameState
+            +onWakeUpComplete() void
+        }
+
+        class Player3D {
+            <<adapter ui>>
+            +speed : number
+            +runSpeed : number
+            +onPositionChange(pos) void
+        }
+    }
+
+    class GamePage {
+        <<orchestrator>>
+        +gameState : GameState
+        +colorProgress : number
+        +showEndGame : boolean
+        +allInteractionsComplete : boolean
+    }
+
+    InteractionRules "1" *-- "5" ObjectRule : defines
+    GameSession ..> InteractionRules : uses
+    GameSession ..> ColorProgress : uses
+    ColorProgress ..> InteractionRules : reads weights
+
+    IGameActions ..> GameSession : drives
+    IGameEvents ..> GameSession : observes
+
+    useGameProgress ..> InteractionRules : isTriggerObject\nisEndingComplete
+    useGameProgress ..> ColorProgress : calculateColorProgress
+    useGameProgress --> useInteraction : reads interactedObjects
+
+    useGameAudio --> useInteraction : reads activeInteraction
+
+    InteractiveObject ..> InteractionRules : isTriggerObject\nisValidObject
+    InteractiveObject ..> Narrative : OBJECT_TEXTS\nGAME_OBJECTS.displayName
+    InteractiveObject --> useInteraction : markInteracted\nsetActiveInteraction
+
+    IntroNarrativa ..> Narrative : INTRO_SLIDES
+    EndGameSequence ..> Narrative : getEndingContent
+
+    GeminiTextDisplay --> useInteraction : reads nearbyObject\nactiveInteraction
+
+    Player3D --> useInteraction : setPlayerPosition\ninteract
+
+    GamePage --> useGameAudio : fadeOutRainAudio\nplayEndAudio
+    GamePage --> useGameProgress : colorProgress
+    GamePage --> GameScene : renders
+    GamePage --> IntroNarrativa : renders
+    GamePage --> EndGameSequence : renders
+    GamePage --> GeminiTextDisplay : renders
+```
+
+### Why Hexagonal Architecture?
+
+| Concern | Before | After |
+|---------|--------|-------|
+| Game rules location | Scattered across components and hooks | Centralized in `core/domain/` |
+| Adding a new object | Edit 4+ files | Edit only `InteractionRules.ts` + `Narrative.ts` |
+| Changing ending logic | Hunt through JSX conditionals | One function in `GameSession.ts` |
+| Testing game rules | Requires rendering components | Pure functions, no dependencies |
+| Trigger rule (mirror) | `if (objeto === "mirror")` in 3 places | `isTrigger: true` in one place |
 
 ---
 
@@ -207,18 +415,17 @@ anedolia/
 
 Players wake up in a **monochromatic world**, experiencing the emotional weight of routine and numbness. Through exploration and interaction with meaningful objects, they gradually **restore color** to their surroundings — a metaphor for rediscovering awareness, presence, and emotional connection.
 
-
 ### Interactive Objects
-
-Each object has unique significance:
 
 | Object | Theme | Color Progress |
 |--------|-------|----------------|
 | ☕ **Coffee Machine** | Morning rituals, warmth | +10% |
 | 🌿 **Plant** | Growth, persistence | +15% |
 | 📚 **Books** | Knowledge, memories | +20% |
-| 🪞 **Mirror** | Self-reflection | +25% |
 | 🖼️ **Painting** | Creativity, expression | +30% |
+| 🪞 **Mirror** | Self-reflection | Ending trigger |
+
+> The mirror is a **trigger**, not a collectible — it ends the game without contributing to color progress. This rule lives in `core/domain/InteractionRules.ts`.
 
 ### Controls
 
@@ -227,155 +434,109 @@ Each object has unique significance:
 | **W A S D** | Move character |
 | **Mouse** | Look around / Rotate camera |
 | **E** | Interact with nearby objects |
-| **Space** | Run (during gameplay) / Advance (during intro) |
-| **Click** | Lock pointer (for camera control) |
+| **Space** | Run (gameplay) / Advance (intro) |
+| **Click** | Lock pointer for camera control |
 
 ---
 
 ## 🔧 How It Works
 
-### 1. **Game State Management**
+### 1. Game State Machine
 
-The game progresses through distinct states:
 ```typescript
-type GameState = 
-  | "intro"           // Narrative slideshow
-  | "waking_up"       // Character on bed
-  | "standing_up"     // Stand-up animation
-  | "playing";        // Free exploration
+// core/domain/GameSession.ts
+type GameState =
+  | "intro"        // Narrative slideshow
+  | "waking_up"    // Character on bed, waiting for SPACE
+  | "standing_up"  // Stand-up animation playing
+  | "playing";     // Free exploration
 ```
 
-State transitions are managed via React hooks and triggered by player actions (SPACE key) or animation completion.
+Transitions are validated by the core — invalid transitions (e.g. `intro → playing`) are rejected.
 
-### 2. **Physics & Collision**
+### 2. Physics & Collision
 
-- **Player**: Capsule collider (prevents clipping through walls)
-- **Environment**: Trimesh colliders (precise collision with apartment geometry)
-- **Movement**: Physics-based with lerp smoothing for natural feel
+- **Player** — Capsule collider prevents clipping through walls
+- **Environment** — Trimesh colliders for precise apartment geometry
+- **Movement** — Physics-based with lerp smoothing for natural feel
 
-### 3. **Camera System**
+### 3. Camera System
 
-**Third-Person Camera:**
-- Orbits around player using yaw/pitch angles
-- Pointer lock API for mouse control
-- Smooth lerp interpolation prevents jarring movements
-- Distance and height dynamically adjust
+**Third-Person Camera** orbits around the player using yaw/pitch angles with pointer lock and smooth lerp interpolation.
 
-**Zoom System:**
-- Temporarily overrides player control during interactions
-- Cinematic transition to focus on objects
-- Easing functions (ease-in-out cubic) for smooth animation
+**Zoom System** temporarily overrides player control during interactions with ease-in-out cubic transitions.
 
-### 4. **Color Progression Shader**
+### 4. Color Progression
 
-Custom post-processing effect that interpolates between grayscale and color:
-```javascript
-// Simplified concept
-mix(grayscale(pixel), originalColor(pixel), colorProgress)
+```typescript
+// core/domain/ColorProgress.ts
+export function calculateColorProgress(interacted: ObjectId[]): number {
+  const total = interacted.reduce(
+    (acc, id) => acc + GAME_OBJECTS[id].colorWeight, 0
+  );
+  return Math.min(total, 1);
+}
 ```
 
-As `colorProgress` increases (0.0 → 1.0), the world transitions from gray to vibrant.
+Custom post-processing interpolates between grayscale and full color as `colorProgress` increases from `0` to `1`.
 
-### 5. **Animation System**
+### 5. Animation System
 
 Uses **SkeletonUtils** to clone skeletal animations independently:
-
-- **Idle** — Character standing still
-- **Walk** — Forward movement
-- **WalkBack** — Backward movement
+- **Idle** — Standing still
+- **Walk / WalkBack** — Directional movement
 - **Sit-to-Stand** — Wake-up sequence
-
-Each animation has individual scale/offset parameters to maintain visual consistency.
 
 ---
 
 ## 🤖 Gemini Integration
 
-### Architecture
+### Flow
+
 ```
-Player Interaction → Proximity Detection → Display Prompt
-                              ↓
-                     Player Presses 'E'
-                              ↓
-                    Request Gemini Text
-                              ↓
-              /api/gemini-route (Server-Side)
-                              ↓
-                  Gemini API Call (gemini-1.5-flash)
-                              ↓
-                     Parse CSV Response
-                              ↓
-               Store in React Context (GenGemini)
-                              ↓
-           Display Text + Image (GeminiTextDisplay)
-                              ↓
-                    Update Color Progress
+Player presses E
+       ↓
+InteractiveObject detects interaction
+       ↓
+Text fetched from GenGemini context
+       ↓
+/api/gemini-route (Server-side)
+       ↓
+Gemini API → parse CSV response
+       ↓
+GeminiTextDisplay renders text + image
 ```
 
-### API Implementation
+### Server-Side Endpoint
 
-**Server-Side Endpoint** (`/api/gemini-route/route.ts`):
 ```typescript
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
+// app/api/gemini-route/route.ts
 export async function GET() {
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
+
   const prompt = `
     Generate poetic, introspective descriptions for 5 objects.
     Format: CSV (objeto,texto)
     Themes: routine, emotional numbness, rediscovery
     Tone: melancholic yet hopeful
-    Length: 15-25 words each
-    
     Objects: café, planta, livros, espelho, quadro
   `;
-  
+
   const result = await model.generateContent(prompt);
-  const text = result.response.text();
-  
-  return Response.json({ text });
+  return Response.json({ text: result.response.text() });
 }
-```
-
-**Client-Side Context** (`GenGemini.tsx`):
-```typescript
-const [texts, setTexts] = useState<Record<string, string>>(FALLBACKS);
-
-useEffect(() => {
-  fetch('/api/gemini-route')
-    .then(res => res.json())
-    .then(data => {
-      const parsed = parseCSV(data.text);
-      setTexts({ ...FALLBACKS, ...parsed });
-    })
-    .catch(() => setTexts(FALLBACKS)); // Fallback on error
-}, []);
 ```
 
 ### Why Gemini?
 
 - ✅ **Dynamic Content** — Each playthrough feels unique
 - ✅ **Thematic Consistency** — Structured prompts ensure tone alignment
-- ✅ **Creative Variability** — AI generates poetic, nuanced descriptions
-- ✅ **Scalability** — Easy to expand with more objects/interactions
-
-### Example Output
-
-**Prompt for Coffee Machine:**
-```csv
-café,The aroma of coffee fills the air, bringing back memories of mornings warmed by hope.
-```
-
-**Prompt for Plant:**
-```csv
-planta,The plant by the window persists, even without sun. Its leaves seek light, as if hope slowly sprouts.
-```
+- ✅ **Fallback System** — Pre-written content when offline
 
 ---
 
-### Browser Compatibility
+## 🌐 Browser Compatibility
 
 | Browser | Support |
 |---------|---------|
@@ -389,14 +550,10 @@ planta,The plant by the window persists, even without sun. Its leaves seek light
 
 ## 🛣️ Roadmap
 
-### Planned Features
-
 - [ ] 🎵 **Dynamic Music** — Adaptive soundtrack based on color progress
-- [ ] 🌍 **Multiple Environments** — Additional rooms/locations
+- [ ] 🌍 **Multiple Environments** — Additional rooms and locations
 - [ ] 📱 **Mobile Optimization** — Touch controls and performance
-- [ ] 🎨 **Custom Shaders** — More advanced visual effects
-- [ ] 🗣️ **Voice Acting** — Optional narration
-- [ ] 💾 **Save System** — LocalStorage-based progress saving
+- [ ] 💾 **Save System** — Persistent progress between sessions
 - [ ] 🏆 **Achievements** — Hidden collectibles and easter eggs
 - [ ] 🌐 **Localization** — Multi-language support
 
@@ -411,8 +568,6 @@ planta,The plant by the window persists, even without sun. Its leaves seek light
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve Anedolia:
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
@@ -421,21 +576,16 @@ Contributions are welcome! If you'd like to improve Anedolia:
 
 ### Development Guidelines
 
-- Follow existing code style (TypeScript + Prettier)
+- Follow existing code style (TypeScript)
+- Keep game rules inside `core/domain/` — never in components
 - Test on multiple browsers before submitting
-- Document new features in README
 - Keep commits atomic and descriptive
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see [LICENSE](LICENSE) file for details.
-
-You are free to:
-- ✅ Use commercially
-- ✅ Modify and distribute
-- ✅ Use privately
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 
 ---
 
@@ -467,7 +617,6 @@ You are free to:
 - **Google DeepMind** — For the Gemini API Developer Competition
 - **Game Inspirations** — INSIDE, LIMBO, Journey, Gris
 - **Communities** — Three.js, React Three Fiber, Next.js
-- **Asset Creators** — See [Credits](#credits) section
 
 ---
 
@@ -477,81 +626,17 @@ You are free to:
 
 **Apartment Model:**
 ```
-Auto-generated by: https://github.com/pmndrs/gltfjsx
-Command: npx gltfjsx@6.5.3 public/home/apartamento.glb --typescript
 Author: SrMonteiro (https://sketchfab.com/crispimrafael)
 License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 Source: https://sketchfab.com/3d-models/apartamento-77e965e2d3244bd58c476ca96baf387e
-Title: Apartamento
 ```
 
-**Character Model:**
-- Created in Blender by Sofia Floriano
-- Original design for Anedolia
+**Character Model:** Created in Blender by Sofia Floriano
 
 ### Tools & Libraries
-
-- [Next.js](https://nextjs.org/) - React framework
-- [Three.js](https://threejs.org/) - 3D graphics library
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/) - React renderer for Three.js
-- [Rapier](https://rapier.rs/) - Physics engine
-- [Google Gemini](https://deepmind.google/technologies/gemini/) - AI narrative generation
-- [Blender](https://www.blender.org/) - 3D modeling software
+- [Next.js](https://nextjs.org/) · [Three.js](https://threejs.org/) · [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/) · [Rapier](https://rapier.rs/) · [Google Gemini](https://deepmind.google/technologies/gemini/) · [Blender](https://www.blender.org/)
 
 ---
-
-
-##simplified diagram(ASCII)
-
-┌─────────────────────────────────────────────────────────────┐
-│                         Page.tsx                             │
-│  ┌────────────┐  ┌──────────────┐  ┌──────────────────┐    │
-│  │ GameState  │  │ ColorProgress│  │ InteractedObjects│    │
-│  └────────────┘  └──────────────┘  └──────────────────┘    │
-└─────────────────────┬───────────────────────────────────────┘
-│
-┌─────────────┼─────────────┐
-│             │             │
-▼             ▼             ▼
-┌──────────────┐ ┌────────┐ ┌─────────────┐
-│ IntroNarra   │ │ Scene  │ │ GenGemini   │
-│  tiva        │ │        │ │ (Context)   │
-└──────────────┘ └────┬───┘ └──────┬──────┘
-│            │
-┌─────────────┼────────┐   │
-│             │        │   │
-▼             ▼        ▼   ▼
-┌──────────────┐ ┌────────────────────┐ ┌─────────────┐
-│ Player3D     │ │ Apartamento        │ │ Gemini      │
-│              │ │                    │ │ TextDisplay │
-│ ┌──────────┐ │ │ ┌────────────────┐│ └─────────────┘
-│ │AnimState │ │ │ │Interactive     ││
-│ └──────────┘ │ │ │Object (x5)     ││
-└──────┬───────┘ │ └────────┬───────┘│
-│         └──────────┼────────┘
-│                    │
-└────────┬───────────┘
-│
-▼
-┌───────────────┐
-│ Interaction   │
-│ Store         │
-│ (Zustand)     │
-│               │
-│ ┌───────────┐ │
-│ │ZoomState  │ │
-│ └───────────┘ │
-└───────┬───────┘
-│
-┌───────────┼───────────┐
-▼           ▼           ▼
-┌────────┐ ┌─────────┐ ┌──────────┐
-│Camera  │ │Camera   │ │Anedolia  │
-│Third   │ │Zoom     │ │Effects   │
-│Person  │ │         │ │          │
-└────────┘ └─────────┘ └──────────┘
-
-----
 
 <p align="center">
   <strong>Built with ❤️ for the Google Gemini API Developer Competition</strong>
