@@ -1,86 +1,134 @@
-/**
- * InteractableObject - Componente para Objetos Interativos com ZOOM
- *
- * Envolve objetos 3D tornando-os interativos:
- * - Detecta quando o jogador está próximo (distância configurável)
- * - Registra-se no sistema de interação
- * - Executa callback quando jogador pressiona E
- * - Aplica zoom automático na câmera ao interagir
- *
- * Props:
- * - id: identificador único
- * - name: nome para exibir na UI
- * - position: posição 3D do objeto
- * - interactionDistance: distância máxima para interagir (padrão: 2)
- * - onInteract: função executada ao interagir
- * - children: mesh/group do objeto 3D
- */
 "use client";
-
 import { useRef, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
-import { useInteraction } from "./useInteraction";
+import { useInteraction } from "../interaction/useInteraction";
+import {
+  isValidObject,
+  isTriggerObject,
+  GAME_OBJECTS,
+  OBJECT_TEXTS,
+  type ObjectId,
+} from "@/core";
 
-interface InteractableObjectProps {
-  id: string;
-  name: string;
-  position: [number, number, number];
-  interactionDistance?: number;
-  onInteract: () => void;
-  children: React.ReactNode;
+// ─── Audio hook ───────────────────────────────────────────────────────────────
+
+function useInteractionAudio(audioPath: string) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!audioPath) return;
+    audioRef.current = new Audio(audioPath);
+    audioRef.current.volume = 0.5;
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, [audioPath]);
+
+  const play = () => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch((err) => console.warn("Audio error:", err));
+  };
+
+  return { play };
 }
 
-export function InteractableObject({
-  id,
-  name,
-  position,
-  interactionDistance = 2,
-  onInteract,
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface InteractiveObjectProps {
+  objeto: string;
+  position?: [number, number, number];
+  interactionDistance?: number;
+  children?: React.ReactNode;
+  onInteract?: (texto: string) => void;
+  audioPath?: string;
+}
+
+export function InteractiveObject({
+  objeto,
+  position = [0, 0, 0],
+  interactionDistance = 2.5,
   children,
-}: InteractableObjectProps) {
-  // Referência para a posição do objeto no mundo 3D
+  onInteract,
+  audioPath,
+}: InteractiveObjectProps) {
+  // ✅ Core validates the object and provides its metadata
+  const isKnown = isValidObject(objeto);
+  const id = objeto as ObjectId;
+  const texto = isKnown
+    ? OBJECT_TEXTS[id]
+    : `You examine the ${objeto}.`;
+  const displayName = isKnown
+    ? GAME_OBJECTS[id].displayName
+    : objeto.charAt(0).toUpperCase() + objeto.slice(1);
+
   const objectPosition = useRef(new Vector3(...position));
+  const playerVec = useRef(new Vector3());
+  const isNearbyRef = useRef(false);
+  const lastInteractTime = useRef(0);
+  const COOLDOWN_MS = 500;
 
-  // Acesso à câmera (que representa a posição do jogador)
-  const { camera } = useThree();
+  const { play: playAudio } = useInteractionAudio(audioPath ?? "");
 
-  // Hook de interação global
-  const setNearestObject = useInteraction((state) => state.setNearestObject);
+  const setNearbyObject = useInteraction((s) => s.setNearbyObject);
+  const setActiveInteraction = useInteraction((s) => s.setActiveInteraction);
+  const markInteracted = useInteraction((s) => s.markInteracted);
 
-  // Atualiza a cada frame para calcular distância
+  // ── Proximity detection ──
   useFrame(() => {
-    // Calcula distância entre câmera (jogador) e objeto
-    const distance = camera.position.distanceTo(objectPosition.current);
+    const [px, py, pz] = useInteraction.getState().playerPosition;
+    playerVec.current.set(px, py, pz);
+    const distance = playerVec.current.distanceTo(objectPosition.current);
+    const nearby = distance <= interactionDistance;
 
-    // Se está dentro da distância de interação
-    if (distance <= interactionDistance) {
-      // Registra como objeto mais próximo (agora inclui posição)
-      setNearestObject({
-        id,
-        name,
-        distance,
-        position, // Passa a posição para o sistema de zoom
-        onInteract,
-      });
+    if (nearby === isNearbyRef.current) return;
+    isNearbyRef.current = nearby;
+
+    if (nearby) {
+      setNearbyObject({ objeto, name: displayName });
     } else {
-      // Se este objeto estava registrado, remove
-      const current = useInteraction.getState().nearestObject;
-      if (current && current.id === id) {
-        setNearestObject(null);
-      }
+      const current = useInteraction.getState().nearbyObject;
+      if (current?.objeto === objeto) setNearbyObject(null);
     }
   });
 
-  // Cleanup: remove registro quando componente desmonta
+  // ── E key interaction ──
   useEffect(() => {
-    return () => {
-      const current = useInteraction.getState().nearestObject;
-      if (current && current.id === id) {
-        setNearestObject(null);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "e" && e.key !== "E") return;
+      if (!isNearbyRef.current) return;
+      if (useInteraction.getState().activeInteraction) return;
+
+      const now = Date.now();
+      if (now - lastInteractTime.current < COOLDOWN_MS) return;
+      lastInteractTime.current = now;
+
+      e.preventDefault();
+      if (audioPath) playAudio();
+      onInteract?.(texto);
+
+      // ✅ Core decides if this is a trigger — no hardcoded "mirror" string
+      if (isKnown && isTriggerObject(id)) {
+        markInteracted(objeto);
+      } else {
+        setActiveInteraction({ objeto, texto });
       }
     };
-  }, [id, setNearestObject]);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objeto, texto, audioPath]);
+
+  // ── Cleanup on unmount ──
+  useEffect(() => {
+    return () => {
+      const current = useInteraction.getState().nearbyObject;
+      if (current?.objeto === objeto) setNearbyObject(null);
+    };
+  }, [objeto, setNearbyObject]);
 
   return <group position={position}>{children}</group>;
 }
